@@ -6,10 +6,12 @@ import { Translator } from './components/Translator';
 import { ReadingAnalysis } from './components/ReadingAnalysis';
 import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
-import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List } from 'lucide-react';
+import { FeedbackBox } from './components/FeedbackBox';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'kana' | 'flashcards' | 'translator' | 'reading' | 'grammar' | 'vocabList'>('kana');
+  const [activeTab, setActiveTab] = useState<'kana' | 'flashcards' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
 
   return (
     <div className="min-h-screen bg-sakura-light text-sakura-deep font-sans selection:bg-sakura-pink/30">
@@ -64,6 +66,13 @@ export default function App() {
           >
             <MessageSquare size={20} />
             <span className="font-medium">智能翻译</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'feedback' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
+          >
+            <HelpCircle size={20} />
+            <span className="font-medium">意见箱</span>
           </button>
         </div>
 
@@ -122,6 +131,13 @@ export default function App() {
           <MessageSquare size={20} />
           <span className="text-[10px] font-medium">助手</span>
         </button>
+        <button
+          onClick={() => setActiveTab('feedback')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'feedback' ? 'text-sakura-rose' : 'text-stone-400'}`}
+        >
+          <HelpCircle size={20} />
+          <span className="text-[10px] font-medium">反馈</span>
+        </button>
       </nav>
 
       {/* Main Content */}
@@ -135,6 +151,7 @@ export default function App() {
               {activeTab === 'grammar' && "语法讲堂"}
               {activeTab === 'reading' && "阅读解析"}
               {activeTab === 'translator' && "智能助手"}
+              {activeTab === 'feedback' && "意见反馈"}
             </h1>
             <p className="text-sakura-rose/60 text-xs md:text-base">
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
@@ -143,6 +160,7 @@ export default function App() {
               {activeTab === 'grammar' && "系统学习 JLPT 各等级核心语法点"}
               {activeTab === 'reading' && "JLPT 模拟真题阅读深度解析与语法收藏"}
               {activeTab === 'translator' && "翻译并自动添加振假名，辅助阅读"}
+              {activeTab === 'feedback' && "留下您的宝贵意见，帮助我们做得更好"}
             </p>
           </div>
           <div className="hidden sm:block text-right">
@@ -151,19 +169,22 @@ export default function App() {
         </header>
 
         <section className="p-4 md:p-12 pt-0 max-w-7xl mx-auto">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {activeTab === 'kana' && <KanaChart />}
-            {activeTab === 'flashcards' && <Flashcards />}
-            {activeTab === 'vocabList' && <VocabularyList />}
-            {activeTab === 'grammar' && <GrammarLearning />}
-            {activeTab === 'reading' && <ReadingAnalysis />}
-            {activeTab === 'translator' && <Translator />}
-          </motion.div>
+          <ErrorBoundary>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {activeTab === 'kana' && <KanaChart />}
+              {activeTab === 'flashcards' && <Flashcards />}
+              {activeTab === 'vocabList' && <VocabularyList />}
+              {activeTab === 'grammar' && <GrammarLearning />}
+              {activeTab === 'reading' && <ReadingAnalysis />}
+              {activeTab === 'translator' && <Translator />}
+              {activeTab === 'feedback' && <FeedbackBox />}
+            </motion.div>
+          </ErrorBoundary>
         </section>
       </main>
     </div>

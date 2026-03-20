@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: feedbacks
+    // Document ID: auto-generated
+    // Fields:
+    //   - content: string (required, size < 1000) - The feedback content
+    //   - author: string (optional, size < 50) - The author's name
+    //   - createdAt: timestamp (required) - Submission time
+    //   - status: string (optional, enum: ['pending', 'reviewed', 'implemented'])
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "986694781@qq.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['content', 'createdAt']) &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000 &&
+             data.createdAt is timestamp &&
+             (!('author' in data) || (data.author is string && data.author.size() < 50)) &&
+             (!('status' in data) || (data.status in ['pending', 'reviewed', 'implemented']));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /feedbacks/{feedbackId} {
+      // Publicly readable as requested
+      allow read: if true;
+      
+      // Anyone can create a feedback, but it must be valid
+      allow create: if isValidFeedback(request.resource.data);
+      
+      // Only admins can update or delete feedbacks
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || isAdmin();
+      allow create, update: if request.auth.uid == userId && 
+                            (!('role' in request.resource.data) || request.resource.data.role == 'user' || isAdmin());
+    }
+  }
+}

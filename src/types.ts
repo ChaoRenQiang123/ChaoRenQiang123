@@ -63,3 +63,11 @@ export interface Kana {
   romaji: string;
   type: 'hiragana' | 'katakana';
 }
+
+export interface Feedback {
+  id: string;
+  content: string;
+  author?: string;
+  createdAt: any; // Firestore Timestamp
+  status?: 'pending' | 'reviewed' | 'implemented';
+}
