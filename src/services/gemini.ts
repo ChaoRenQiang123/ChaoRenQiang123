@@ -1,7 +1,61 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint } from "../types";
+import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint, WordDetail } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
+// ... existing code ...
+
+export const generateWordDetail = async (word: string, reading: string, meaning: string): Promise<WordDetail | null> => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
+    1. Identify its word type (e.g., Verb, Adjective, Noun).
+    2. Provide a natural example sentence in Japanese, its reading, and Chinese translation.
+    3. If it's a verb or adjective, provide common conjugations (e.g., Te-form, Negative, Past, Polite).
+    Return the result in JSON format.`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          word: { type: Type.STRING },
+          reading: { type: Type.STRING },
+          meaning: { type: Type.STRING },
+          type: { type: Type.STRING, description: "Word type, e.g., 'Verb', 'I-Adjective', 'Na-Adjective', 'Noun'" },
+          example: {
+            type: Type.OBJECT,
+            properties: {
+              japanese: { type: Type.STRING },
+              reading: { type: Type.STRING },
+              chinese: { type: Type.STRING },
+            },
+            required: ["japanese", "reading", "chinese"],
+          },
+          conjugations: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                form: { type: Type.STRING, description: "e.g., 'Te-form', 'Negative', 'Past', 'Polite'" },
+                japanese: { type: Type.STRING },
+                reading: { type: Type.STRING },
+              },
+              required: ["form", "japanese", "reading"],
+            },
+          },
+        },
+        required: ["word", "reading", "meaning", "type", "example"],
+      },
+    },
+  });
+
+  try {
+    return JSON.parse(response.text || "null");
+  } catch (e) {
+    console.error("Failed to parse word detail", e);
+    return null;
+  }
+};
 
 // Simple in-memory cache for audio data to improve performance on repeated requests
 const audioCache = new Map<string, string>();

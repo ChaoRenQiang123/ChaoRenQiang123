@@ -23,11 +23,34 @@ export const GrammarLearning: React.FC = () => {
     }
   }, [selectedPoint]);
 
-  const fetchGrammar = async () => {
+  const fetchGrammar = async (forceRefresh = false) => {
+    const cacheKey = `grammar_cache_${level}`;
+    
+    if (!forceRefresh) {
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setGrammarPoints(parsed);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse grammar cache", e);
+        }
+      }
+    }
+
     setLoading(true);
-    const data = await generateGrammarPoints(level);
-    setGrammarPoints(data);
-    setLoading(false);
+    try {
+      const data = await generateGrammarPoints(level);
+      setGrammarPoints(data);
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch (error) {
+      console.error("Failed to fetch grammar points", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePlayAudio = async (text: string) => {
@@ -95,7 +118,7 @@ export const GrammarLearning: React.FC = () => {
                 </button>
               ))}
               <button 
-                onClick={fetchGrammar}
+                onClick={() => fetchGrammar(true)}
                 className="w-full py-3 mt-4 border-2 border-dashed border-sakura-pink/20 rounded-2xl text-sakura-pink/40 hover:text-sakura-rose hover:border-sakura-rose/40 transition-all text-sm flex items-center justify-center gap-2"
               >
                 <RefreshCw size={14} />

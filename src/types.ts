@@ -7,6 +7,23 @@ export interface Vocabulary {
   exampleMeaning: string;
 }
 
+export interface WordDetail {
+  word: string;
+  reading: string;
+  meaning: string;
+  type: string;
+  example: {
+    japanese: string;
+    reading: string;
+    chinese: string;
+  };
+  conjugations?: {
+    form: string;
+    japanese: string;
+    reading: string;
+  }[];
+}
+
 export type JLPTLevel = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
 export interface GrammarPoint {

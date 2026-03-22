@@ -26,14 +26,40 @@ export const ReadingAnalysis: React.FC = () => {
     localStorage.setItem('sakura_saved_items', JSON.stringify(savedItems));
   }, [savedItems]);
 
-  const fetchPassage = async () => {
+  const fetchPassage = async (forceRefresh = false) => {
+    const cacheKey = `reading_passage_cache_${level}`;
+    
+    if (!forceRefresh) {
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          if (parsed && parsed.content) {
+            setPassage(parsed);
+            setSelection(null);
+            setShowAnswer(false);
+            setSelectedOption(null);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse reading cache", e);
+        }
+      }
+    }
+
     setLoading(true);
     setSelection(null);
     setShowAnswer(false);
     setSelectedOption(null);
-    const data = await generateReadingPassage(level);
-    setPassage(data);
-    setLoading(false);
+    try {
+      const data = await generateReadingPassage(level);
+      setPassage(data);
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch (error) {
+      console.error("Failed to fetch reading passage", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTextSelection = async () => {
@@ -83,7 +109,7 @@ export const ReadingAnalysis: React.FC = () => {
               >
                 {['N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
               </select>
-              <button onClick={fetchPassage} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
+              <button onClick={() => fetchPassage(true)} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
               </button>
             </div>

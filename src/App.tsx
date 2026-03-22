@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { KanaChart } from './components/KanaChart';
-import { Flashcards } from './components/Flashcards';
 import { Translator } from './components/Translator';
 import { ReadingAnalysis } from './components/ReadingAnalysis';
 import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'kana' | 'flashcards' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
+  const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
 
   return (
     <div className="min-h-screen bg-sakura-light text-sakura-deep font-sans selection:bg-sakura-pink/30">
@@ -31,13 +29,6 @@ export default function App() {
           >
             <Layout size={20} />
             <span className="font-medium">五十音图</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('flashcards')}
-            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'flashcards' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
-          >
-            <Book size={20} />
-            <span className="font-medium">单词卡片</span>
           </button>
           <button
             onClick={() => setActiveTab('vocabList')}
@@ -97,13 +88,6 @@ export default function App() {
           <span className="text-[10px] font-medium">五十音</span>
         </button>
         <button
-          onClick={() => setActiveTab('flashcards')}
-          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'flashcards' ? 'text-sakura-rose' : 'text-stone-400'}`}
-        >
-          <Book size={20} />
-          <span className="text-[10px] font-medium">单词</span>
-        </button>
-        <button
           onClick={() => setActiveTab('vocabList')}
           className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'vocabList' ? 'text-sakura-rose' : 'text-stone-400'}`}
         >
@@ -146,7 +130,6 @@ export default function App() {
           <div>
             <h1 className="text-3xl md:text-5xl font-serif italic mb-1 md:mb-2 text-sakura-deep">
               {activeTab === 'kana' && "基础假名"}
-              {activeTab === 'flashcards' && "词汇练习"}
               {activeTab === 'vocabList' && "核心词表"}
               {activeTab === 'grammar' && "语法讲堂"}
               {activeTab === 'reading' && "阅读解析"}
@@ -155,7 +138,6 @@ export default function App() {
             </h1>
             <p className="text-sakura-rose/60 text-xs md:text-base">
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
-              {activeTab === 'flashcards' && "通过 AI 生成的卡片快速记忆单词"}
               {activeTab === 'vocabList' && "N5-N3 等级核心单词列表，按出现频率排序，每页 50 词"}
               {activeTab === 'grammar' && "系统学习 JLPT 各等级核心语法点"}
               {activeTab === 'reading' && "JLPT 模拟真题阅读深度解析与语法收藏"}
@@ -169,22 +151,19 @@ export default function App() {
         </header>
 
         <section className="p-4 md:p-12 pt-0 max-w-7xl mx-auto">
-          <ErrorBoundary>
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              {activeTab === 'kana' && <KanaChart />}
-              {activeTab === 'flashcards' && <Flashcards />}
-              {activeTab === 'vocabList' && <VocabularyList />}
-              {activeTab === 'grammar' && <GrammarLearning />}
-              {activeTab === 'reading' && <ReadingAnalysis />}
-              {activeTab === 'translator' && <Translator />}
-              {activeTab === 'feedback' && <FeedbackBox />}
-            </motion.div>
-          </ErrorBoundary>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {activeTab === 'kana' && <KanaChart />}
+            {activeTab === 'vocabList' && <VocabularyList />}
+            {activeTab === 'grammar' && <GrammarLearning />}
+            {activeTab === 'reading' && <ReadingAnalysis />}
+            {activeTab === 'translator' && <Translator />}
+            {activeTab === 'feedback' && <FeedbackBox />}
+          </motion.div>
         </section>
       </main>
     </div>
