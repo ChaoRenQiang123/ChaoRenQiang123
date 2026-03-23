@@ -20,6 +20,8 @@ export const VocabularyList: React.FC = () => {
       const data = await prefetchVocabulary(newLevel, newPage, forceRefresh);
       if (data && data.length > 0) {
         setWords(data);
+        // Pre-fetch next page
+        prefetchVocabulary(newLevel, newPage + 1);
       }
     } catch (error) {
       console.error("Failed to fetch vocabulary", error);

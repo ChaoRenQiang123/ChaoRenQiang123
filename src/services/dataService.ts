@@ -1,5 +1,5 @@
 import { JLPTLevel, Vocabulary, GrammarPoint, ReadingPassage } from "../types";
-import { generateVocabularyList, generateGrammarPoints, generateReadingPassage } from "./gemini";
+import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, generateKanaExamples } from "./gemini";
 
 // Track ongoing fetches to prevent redundant calls
 const ongoingFetches: Record<string, Promise<any>> = {};
@@ -55,9 +55,23 @@ export const prefetchReading = async (level: JLPTLevel = 'N3', forceRefresh: boo
   return fetchWithCache(cacheKey, () => generateReadingPassage(level), forceRefresh);
 };
 
+export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
+  const cacheKey = `kana_examples_cache_${kana}`;
+  return fetchWithCache(cacheKey, () => generateKanaExamples(kana), forceRefresh);
+};
+
 export const startPreloading = () => {
-  // Preload default levels for each category
-  prefetchVocabulary('N3', 1);
+  // Preload page 1 and 2 for common levels
+  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
+    prefetchVocabulary(level, 1);
+    prefetchVocabulary(level, 2);
+  });
+  
   prefetchGrammar('N5');
   prefetchReading('N3');
+
+  // Preload common kana (vowels)
+  ['あ', 'い', 'う', 'え', 'お', 'ア', 'イ', 'ウ', 'エ', 'オ'].forEach(kana => {
+    prefetchKanaExamples(kana);
+  });
 };

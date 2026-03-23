@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, BookOpen, Volume2 } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
-import { generateKanaExamples, generateAudio } from '../services/gemini';
+import { generateAudio } from '../services/gemini';
+import { prefetchKanaExamples } from '../services/dataService';
 import { playRawAudio } from '../utils/audio';
 
 const hiragana: Kana[] = [
@@ -47,9 +48,15 @@ export const KanaChart: React.FC = () => {
     setSelectedKana(kana);
     setLoading(true);
     setExamples([]);
-    const result = await generateKanaExamples(kana.char);
+    const result = await prefetchKanaExamples(kana.char);
     setExamples(result);
     setLoading(false);
+  };
+
+  const handleMouseEnter = (kana: Kana) => {
+    if (kana.char) {
+      prefetchKanaExamples(kana.char);
+    }
   };
 
   const handlePlayAudio = async (text: string) => {
@@ -102,6 +109,7 @@ export const KanaChart: React.FC = () => {
           <div
             key={index}
             onClick={() => handleKanaClick(item)}
+            onMouseEnter={() => handleMouseEnter(item)}
             className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
           >
             <span className="text-lg md:text-xl font-medium text-sakura-deep leading-none">{item.char}</span>
