@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Book, ChevronRight, Loader2, RefreshCw, CheckCircle2, Volume2 } from 'lucide-react';
 import { GrammarPoint, JLPTLevel } from '../types';
-import { generateGrammarPoints, generateAudio } from '../services/gemini';
+import { generateAudio } from '../services/gemini';
+import { prefetchGrammar } from '../services/dataService';
 import { playRawAudio } from '../utils/audio';
 
 export const GrammarLearning: React.FC = () => {
@@ -24,28 +25,10 @@ export const GrammarLearning: React.FC = () => {
   }, [selectedPoint]);
 
   const fetchGrammar = async (forceRefresh = false) => {
-    const cacheKey = `grammar_cache_${level}`;
-    
-    if (!forceRefresh) {
-      const cachedData = localStorage.getItem(cacheKey);
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setGrammarPoints(parsed);
-            return;
-          }
-        } catch (e) {
-          console.error("Failed to parse grammar cache", e);
-        }
-      }
-    }
-
     setLoading(true);
     try {
-      const data = await generateGrammarPoints(level);
+      const data = await prefetchGrammar(level, forceRefresh);
       setGrammarPoints(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to fetch grammar points", error);
     } finally {

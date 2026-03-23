@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { KanaChart } from './components/KanaChart';
 import { Translator } from './components/Translator';
@@ -7,9 +7,15 @@ import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
 import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle } from 'lucide-react';
+import { startPreloading } from './services/dataService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
+
+  useEffect(() => {
+    // Start preloading data in the background to reduce wait time
+    startPreloading();
+  }, []);
 
   return (
     <div className="min-h-screen bg-sakura-light text-sakura-deep font-sans selection:bg-sakura-pink/30">
@@ -125,10 +131,10 @@ export default function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="md:pl-64 min-h-screen pb-20 md:pb-0">
-        <header className="p-6 md:p-12 flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl md:text-5xl font-serif italic mb-1 md:mb-2 text-sakura-deep">
+      <main className="md:pl-64 min-h-screen pb-24 md:pb-0">
+        <header className={`p-4 md:p-12 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 ${activeTab === 'kana' ? 'md:pb-6 pb-2' : ''}`}>
+          <div className="max-w-2xl">
+            <h1 className={`${activeTab === 'kana' ? 'text-xl md:text-4xl' : 'text-2xl md:text-5xl'} font-serif italic mb-1 md:mb-2 text-sakura-deep transition-all`}>
               {activeTab === 'kana' && "基础假名"}
               {activeTab === 'vocabList' && "核心词表"}
               {activeTab === 'grammar' && "语法讲堂"}
@@ -136,7 +142,7 @@ export default function App() {
               {activeTab === 'translator' && "智能助手"}
               {activeTab === 'feedback' && "意见反馈"}
             </h1>
-            <p className="text-sakura-rose/60 text-xs md:text-base">
+            <p className="text-sakura-rose/60 text-[10px] md:text-base leading-relaxed">
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
               {activeTab === 'vocabList' && "N5-N3 等级核心单词列表，按出现频率排序，每页 50 词"}
               {activeTab === 'grammar' && "系统学习 JLPT 各等级核心语法点"}
@@ -150,7 +156,7 @@ export default function App() {
           </div>
         </header>
 
-        <section className="p-4 md:p-12 pt-0 max-w-7xl mx-auto">
+        <section className="p-3 md:p-12 pt-0 max-w-7xl mx-auto">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 20 }}

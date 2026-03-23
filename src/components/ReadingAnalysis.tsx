@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ReadingPassage, JLPTLevel, AnalysisResult, SavedItem } from '../types';
-import { generateReadingPassage, analyzeSelectedText } from '../services/gemini';
+import { analyzeSelectedText } from '../services/gemini';
+import { prefetchReading } from '../services/dataService';
 import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -27,34 +28,13 @@ export const ReadingAnalysis: React.FC = () => {
   }, [savedItems]);
 
   const fetchPassage = async (forceRefresh = false) => {
-    const cacheKey = `reading_passage_cache_${level}`;
-    
-    if (!forceRefresh) {
-      const cachedData = localStorage.getItem(cacheKey);
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData);
-          if (parsed && parsed.content) {
-            setPassage(parsed);
-            setSelection(null);
-            setShowAnswer(false);
-            setSelectedOption(null);
-            return;
-          }
-        } catch (e) {
-          console.error("Failed to parse reading cache", e);
-        }
-      }
-    }
-
     setLoading(true);
     setSelection(null);
     setShowAnswer(false);
     setSelectedOption(null);
     try {
-      const data = await generateReadingPassage(level);
+      const data = await prefetchReading(level, forceRefresh);
       setPassage(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error) {
       console.error("Failed to fetch reading passage", error);
     } finally {

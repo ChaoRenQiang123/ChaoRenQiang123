@@ -78,34 +78,34 @@ export const KanaChart: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 relative" id="kana-chart">
-      <div className="flex justify-between items-center mb-6 md:mb-8">
-        <h2 className="text-xl md:text-2xl font-serif italic text-sakura-deep">五十音图</h2>
-        <div className="flex gap-1 md:gap-2 bg-sakura-pink/10 p-1 rounded-full">
+    <div className="p-3 md:p-4 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 relative" id="kana-chart">
+      <div className="flex justify-between items-center mb-4 md:mb-6">
+        <h2 className="text-lg md:text-xl font-serif italic text-sakura-deep">五十音图</h2>
+        <div className="flex gap-1 bg-sakura-pink/10 p-1 rounded-full">
           <button
             onClick={() => setType('hiragana')}
-            className={`px-3 md:px-4 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-all ${type === 'hiragana' ? 'bg-white shadow-sm text-sakura-rose' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+            className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'hiragana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
           >
             平假名
           </button>
           <button
             onClick={() => setType('katakana')}
-            className={`px-3 md:px-4 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-all ${type === 'katakana' ? 'bg-white shadow-sm text-sakura-rose' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+            className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'katakana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
           >
             片假名
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 md:gap-3">
+      <div className="grid grid-cols-5 gap-1 md:gap-2">
         {data.map((item, index) => (
           <div
             key={index}
             onClick={() => handleKanaClick(item)}
-            className={`aspect-square flex flex-col items-center justify-center rounded-xl md:rounded-2xl border transition-all ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
+            className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
           >
-            <span className="text-xl md:text-2xl font-medium text-sakura-deep">{item.char}</span>
-            <span className="text-[8px] md:text-[10px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5 md:mt-1">{item.romaji}</span>
+            <span className="text-lg md:text-xl font-medium text-sakura-deep leading-none">{item.char}</span>
+            <span className="text-[8px] md:text-[9px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
           </div>
         ))}
       </div>

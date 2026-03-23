@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Vocabulary, JLPTLevel, WordDetail } from '../types';
-import { generateVocabularyList, generateWordDetail } from '../services/gemini';
+import { generateWordDetail } from '../services/gemini';
+import { prefetchVocabulary } from '../services/dataService';
 import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -13,27 +14,17 @@ export const VocabularyList: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const fetchWords = async (newLevel: JLPTLevel = level, newPage: number = page, forceRefresh: boolean = false) => {
-    const cacheKey = `sakura_vocab_v2_${newLevel}_${newPage}`;
-    
-    if (!forceRefresh) {
-      const cachedData = localStorage.getItem(cacheKey);
-      if (cachedData) {
-        try {
-          setWords(JSON.parse(cachedData));
-          return;
-        } catch (e) {
-          console.error("Failed to parse cached vocabulary", e);
-        }
-      }
-    }
-
     setLoading(true);
-    const data = await generateVocabularyList(newLevel, newPage);
-    if (data && data.length > 0) {
-      setWords(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
+    try {
+      const data = await prefetchVocabulary(newLevel, newPage, forceRefresh);
+      if (data && data.length > 0) {
+        setWords(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch vocabulary", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
