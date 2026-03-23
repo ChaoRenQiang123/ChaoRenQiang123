@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Vocabulary, JLPTLevel, WordDetail } from '../types';
 import { generateWordDetail } from '../services/gemini';
 import { prefetchVocabulary } from '../services/dataService';
-import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2 } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const VocabularyList: React.FC = () => {
@@ -12,6 +12,7 @@ export const VocabularyList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedWord, setSelectedWord] = useState<WordDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchWords = async (newLevel: JLPTLevel = level, newPage: number = page, forceRefresh: boolean = false) => {
     setLoading(true);
@@ -34,6 +35,7 @@ export const VocabularyList: React.FC = () => {
   const handleLevelChange = (newLevel: JLPTLevel) => {
     setLevel(newLevel);
     setPage(1);
+    setSearchQuery('');
   };
 
   const handleRefresh = () => {
@@ -52,9 +54,15 @@ export const VocabularyList: React.FC = () => {
     }
   };
 
+  const filteredWords = words.filter(item => 
+    item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.reading.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.meaning.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 h-full flex flex-col relative" id="vocabulary-list">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-sakura-pink/10 rounded-xl">
             <List size={20} className="text-sakura-rose" />
@@ -62,27 +70,48 @@ export const VocabularyList: React.FC = () => {
           <h2 className="text-2xl font-serif italic text-sakura-deep">核心单词表</h2>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex gap-1 bg-sakura-pink/10 p-1 rounded-full">
-            {(['N5', 'N4', 'N3'] as JLPTLevel[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => handleLevelChange(l)}
-                className={`px-4 py-1.5 rounded-full text-sm transition-all ${level === l ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="relative flex-1 sm:w-64">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-sakura-pink/40" size={16} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="搜索单词、读音或释义..."
+              className="w-full pl-10 pr-4 py-2 bg-sakura-pink/5 border border-sakura-pink/10 rounded-full text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep placeholder:text-sakura-pink/30 transition-all"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sakura-pink/40 hover:text-sakura-rose"
               >
-                {l}
+                <X size={14} />
               </button>
-            ))}
+            )}
           </div>
-          
-          <button 
-            onClick={handleRefresh}
-            disabled={loading}
-            title="重新生成当前页"
-            className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose disabled:opacity-30"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1 bg-sakura-pink/10 p-1 rounded-full">
+              {(['N5', 'N4', 'N3'] as JLPTLevel[]).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => handleLevelChange(l)}
+                  className={`px-4 py-1.5 rounded-full text-sm transition-all ${level === l ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              onClick={handleRefresh}
+              disabled={loading}
+              title="重新生成当前页"
+              className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose disabled:opacity-30"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -92,10 +121,15 @@ export const VocabularyList: React.FC = () => {
             <RefreshCw className="w-8 h-8 animate-spin" />
             <p className="text-sm font-serif italic">正在获取单词列表...</p>
           </div>
+        ) : filteredWords.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center gap-4 text-sakura-pink/40">
+            <SearchIcon size={40} className="opacity-20" />
+            <p className="text-sm font-serif italic">未找到匹配的单词</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
             <AnimatePresence mode="popLayout">
-              {words.map((item, index) => (
+              {filteredWords.map((item, index) => (
                 <motion.div
                   key={`${item.word}-${index}`}
                   initial={{ opacity: 0, x: -10 }}
