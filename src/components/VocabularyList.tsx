@@ -174,26 +174,26 @@ export const VocabularyList: React.FC = () => {
               <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-8">
                 <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-sakura-pink/10 pb-6">
                   <div className="flex flex-col">
-                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">Word</span>
+                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">单词</span>
                     <span className="text-4xl font-bold text-sakura-deep">{selectedWord.word}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">Reading</span>
+                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">读音</span>
                     <span className="text-xl text-sakura-rose font-serif italic">{selectedWord.reading}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">Type</span>
+                    <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">词性</span>
                     <span className="px-3 py-0.5 bg-sakura-pink/10 text-sakura-rose text-sm rounded-full font-medium">{selectedWord.type}</span>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">Meaning</h4>
+                  <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">释义</h4>
                   <p className="text-xl text-stone-700">{selectedWord.meaning}</p>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">Example Sentence</h4>
+                  <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">例句</h4>
                   <div className="bg-sakura-pink/5 p-6 rounded-2xl border border-sakura-pink/10">
                     <p className="text-xl font-serif text-sakura-deep mb-2">{selectedWord.example.japanese}</p>
                     <p className="text-sm text-sakura-rose/60 italic mb-4">{selectedWord.example.reading}</p>
@@ -203,12 +203,12 @@ export const VocabularyList: React.FC = () => {
 
                 {selectedWord.conjugations && selectedWord.conjugations.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">Conjugations (活用)</h4>
+                    <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">活用变形</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedWord.conjugations.map((conj, i) => (
                         <div key={i} className="p-4 bg-white border border-sakura-pink/10 rounded-xl shadow-sm flex justify-between items-center">
                           <div className="flex flex-col">
-                            <span className="text-[10px] text-sakura-rose/40 uppercase font-bold mb-1">{conj.form}</span>
+                            <span className="text-[10px] text-sakura-rose/40 font-bold mb-1">{conj.form}</span>
                             <span className="text-lg font-bold text-sakura-deep">{conj.japanese}</span>
                           </div>
                           <span className="text-xs text-sakura-rose/60 font-serif italic">{conj.reading}</span>

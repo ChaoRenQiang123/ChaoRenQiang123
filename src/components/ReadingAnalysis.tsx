@@ -228,10 +228,18 @@ export const ReadingAnalysis: React.FC = () => {
                     <span className="text-[10px] text-sakura-pink/30 uppercase tracking-widest">Selected</span>
                     {selection.result && (
                       <button 
-                        onClick={() => saveItem('sentence', selection.text, selection.result!.translation, selection.result!.grammarPoints)}
-                        className="text-sakura-pink/30 hover:text-emerald-400 transition-all"
+                        onClick={() => {
+                          const isSaved = savedItems.some(item => item.text === selection.text && item.type === 'sentence');
+                          if (isSaved) {
+                            const item = savedItems.find(item => item.text === selection.text && item.type === 'sentence');
+                            if (item) removeSavedItem(item.id);
+                          } else {
+                            saveItem('sentence', selection.text, selection.result!.translation, selection.result!.grammarPoints);
+                          }
+                        }}
+                        className={`${savedItems.some(item => item.text === selection.text && item.type === 'sentence') ? 'text-yellow-400' : 'text-sakura-pink/30'} hover:text-yellow-400 transition-all`}
                       >
-                        <Bookmark size={16} />
+                        <Bookmark size={16} fill={savedItems.some(item => item.text === selection.text && item.type === 'sentence') ? 'currentColor' : 'none'} />
                       </button>
                     )}
                   </div>
@@ -258,10 +266,18 @@ export const ReadingAnalysis: React.FC = () => {
                             <div className="flex justify-between items-center mb-1">
                               <h5 className="text-sm font-bold text-emerald-400">{gp.point}</h5>
                               <button 
-                                onClick={() => saveItem('grammar', gp.point, gp.explanation)}
-                                className="text-sakura-pink/20 hover:text-amber-400 transition-all"
+                                onClick={() => {
+                                  const isSaved = savedItems.some(item => item.text === gp.point && item.type === 'grammar');
+                                  if (isSaved) {
+                                    const item = savedItems.find(item => item.text === gp.point && item.type === 'grammar');
+                                    if (item) removeSavedItem(item.id);
+                                  } else {
+                                    saveItem('grammar', gp.point, gp.explanation);
+                                  }
+                                }}
+                                className={`${savedItems.some(item => item.text === gp.point && item.type === 'grammar') ? 'text-yellow-400' : 'text-sakura-pink/20'} hover:text-yellow-400 transition-all`}
                               >
-                                <Bookmark size={14} />
+                                <Bookmark size={14} fill={savedItems.some(item => item.text === gp.point && item.type === 'grammar') ? 'currentColor' : 'none'} />
                               </button>
                             </div>
                             <p className="text-xs text-sakura-pink/60 leading-relaxed">{gp.explanation}</p>

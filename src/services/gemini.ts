@@ -11,7 +11,9 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
     contents: `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
     1. Identify its word type (e.g., Verb, Adjective, Noun).
     2. Provide a natural example sentence in Japanese, its reading, and Chinese translation.
-    3. If it's a verb or adjective, provide common conjugations (e.g., Te-form, Negative, Past, Polite).
+    3. If it's a verb or adjective, provide common conjugations. 
+       For verbs, include: て形, 否定形, 过去形, 礼貌形, 使役形, 被动形, 可能形, 假定形 (only if applicable).
+       Use Chinese labels for all conjugation forms.
     Return the result in JSON format.`,
     config: {
       responseMimeType: "application/json",
@@ -21,7 +23,7 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
           word: { type: Type.STRING },
           reading: { type: Type.STRING },
           meaning: { type: Type.STRING },
-          type: { type: Type.STRING, description: "Word type, e.g., 'Verb', 'I-Adjective', 'Na-Adjective', 'Noun'" },
+          type: { type: Type.STRING, description: "Word type, e.g., '动词', 'い形容词', 'な形容词', '名词'" },
           example: {
             type: Type.OBJECT,
             properties: {
@@ -36,7 +38,7 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
             items: {
               type: Type.OBJECT,
               properties: {
-                form: { type: Type.STRING, description: "e.g., 'Te-form', 'Negative', 'Past', 'Polite'" },
+                form: { type: Type.STRING, description: "e.g., 'て形', '否定形', '使役形', '被动形'" },
                 japanese: { type: Type.STRING },
                 reading: { type: Type.STRING },
               },
@@ -162,6 +164,36 @@ export const generateVocabularyList = async (level: JLPTLevel, page: number): Pr
   } catch (e) {
     console.error("Failed to parse vocabulary list", e);
     return [];
+  }
+};
+
+export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 'ja-zh'): Promise<{ translated: string; furigana?: string }> => {
+  const isToJapanese = direction === 'zh-ja';
+  const prompt = isToJapanese 
+    ? `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`
+    : `Translate this Japanese text to Chinese. Text: "${text}"`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          translated: { type: Type.STRING, description: isToJapanese ? "The Japanese translation" : "The Chinese translation" },
+          furigana: { type: Type.STRING, description: "The Japanese text with furigana in brackets, e.g., 漢字[かんじ]. Only provide if translating to Japanese." },
+        },
+        required: ["translated"],
+      },
+    },
+  });
+
+  try {
+    return JSON.parse(response.text || '{"translated": ""}');
+  } catch (e) {
+    console.error("Failed to parse translation", e);
+    return { translated: "" };
   }
 };
 
