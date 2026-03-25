@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export const ReadingAnalysis: React.FC = () => {
   const [level, setLevel] = useState<JLPTLevel>('N3');
+  const [topic, setTopic] = useState<string>('');
   const [passage, setPassage] = useState<ReadingPassage | null>(null);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -19,9 +20,23 @@ export const ReadingAnalysis: React.FC = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
+  const topics = [
+    { value: '', label: '随机题材' },
+    { value: 'politics (政治)', label: '政治' },
+    { value: 'economy (経済)', label: '经济' },
+    { value: 'culture (文化)', label: '文化' },
+    { value: 'daily life (生活)', label: '日常生活' },
+    { value: 'history (歴史)', label: '历史' },
+    { value: 'basic science (基礎科学)', label: '基础科学' },
+    { value: 'environment (環境)', label: '环境' },
+    { value: 'education (教育)', label: '教育' },
+    { value: 'society (社会)', label: '社会' },
+    { value: 'art (芸術)', label: '艺术' }
+  ];
+
   useEffect(() => {
     fetchPassage();
-  }, [level]);
+  }, [level, topic]);
 
   useEffect(() => {
     localStorage.setItem('sakura_saved_items', JSON.stringify(savedItems));
@@ -33,7 +48,7 @@ export const ReadingAnalysis: React.FC = () => {
     setShowAnswer(false);
     setSelectedOption(null);
     try {
-      const data = await prefetchReading(level, forceRefresh);
+      const data = await prefetchReading(level, forceRefresh, topic || undefined);
       setPassage(data);
     } catch (error) {
       console.error("Failed to fetch reading passage", error);
@@ -81,13 +96,20 @@ export const ReadingAnalysis: React.FC = () => {
               </div>
               <h2 className="text-2xl font-serif italic text-sakura-deep">模拟真题阅读</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <select 
                 value={level} 
                 onChange={(e) => setLevel(e.target.value as JLPTLevel)}
                 className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
               >
                 {['N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+              <select 
+                value={topic} 
+                onChange={(e) => setTopic(e.target.value)}
+                className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
+              >
+                {topics.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
               <button onClick={() => fetchPassage(true)} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />

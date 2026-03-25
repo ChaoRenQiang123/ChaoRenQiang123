@@ -272,18 +272,18 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
     id: Math.random().toString(36).substr(2, 9),
   }));
 };
-export const generateReadingPassage = async (level: JLPTLevel): Promise<ReadingPassage> => {
+export const generateReadingPassage = async (level: JLPTLevel, topic?: string): Promise<ReadingPassage> => {
   const topics = [
     "politics (政治)", "economy (経済)", "culture (文化)", "daily life (生活)", 
     "history (歴史)", "basic science (基礎科学)", "environment (環境)", 
     "education (教育)", "society (社会)", "art (芸術)"
   ];
-  const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+  const selectedTopic = topic || topics[Math.floor(Math.random() * topics.length)];
 
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Generate a realistic JLPT ${level} level reading comprehension passage. 
-    The topic should be related to ${randomTopic}. It should be similar to actual exam questions in style and difficulty. 
+    The topic should be related to ${selectedTopic}. It should be similar to actual exam questions in style and difficulty. 
     Provide a title, the full text in Japanese, and one multiple-choice question about the main idea (主旨) of the passage with 4 options (A, B, C, D) in Japanese, the index of the correct answer (0-3), and a brief explanation in Chinese.`,
     config: {
       responseMimeType: "application/json",

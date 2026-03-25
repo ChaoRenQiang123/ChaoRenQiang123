@@ -50,9 +50,9 @@ export const prefetchGrammar = async (level: JLPTLevel = 'N5', forceRefresh: boo
   return fetchWithCache(cacheKey, () => generateGrammarPoints(level), forceRefresh);
 };
 
-export const prefetchReading = async (level: JLPTLevel = 'N3', forceRefresh: boolean = false): Promise<ReadingPassage | null> => {
-  const cacheKey = `reading_passage_cache_${level}`;
-  return fetchWithCache(cacheKey, () => generateReadingPassage(level), forceRefresh);
+export const prefetchReading = async (level: JLPTLevel = 'N3', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {
+  const cacheKey = `reading_passage_cache_${level}_${topic || 'random'}`;
+  return fetchWithCache(cacheKey, () => generateReadingPassage(level, topic), forceRefresh);
 };
 
 export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
