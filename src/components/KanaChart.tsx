@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Loader2, BookOpen, Volume2 } from 'lucide-react';
+import { X, Loader2, BookOpen, Volume2, PencilLine } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
 import { generateAudio } from '../services/gemini';
 import { prefetchKanaExamples } from '../services/dataService';
 import { playRawAudio } from '../utils/audio';
+import { WritingCanvas } from './WritingCanvas';
 
 const hiragana: Kana[] = [
   { char: 'あ', romaji: 'a', type: 'hiragana' }, { char: 'い', romaji: 'i', type: 'hiragana' }, { char: 'う', romaji: 'u', type: 'hiragana' }, { char: 'え', romaji: 'e', type: 'hiragana' }, { char: 'お', romaji: 'o', type: 'hiragana' },
@@ -37,6 +38,7 @@ const katakana: Kana[] = [
 export const KanaChart: React.FC = () => {
   const [type, setType] = useState<'hiragana' | 'katakana'>('hiragana');
   const [selectedKana, setSelectedKana] = useState<Kana | null>(null);
+  const [activeTab, setActiveTab] = useState<'examples' | 'writing'>('examples');
   const [examples, setExamples] = useState<Vocabulary[]>([]);
   const [loading, setLoading] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
@@ -46,10 +48,14 @@ export const KanaChart: React.FC = () => {
   const handleKanaClick = async (kana: Kana) => {
     if (!kana.char) return;
     setSelectedKana(kana);
+    setActiveTab('examples');
     setLoading(true);
     setExamples([]);
-    const result = await prefetchKanaExamples(kana.char);
-    setExamples(result);
+    
+    // Fetch examples
+    const examplesResult = await prefetchKanaExamples(kana.char);
+    
+    setExamples(examplesResult);
     setLoading(false);
   };
 
@@ -82,6 +88,10 @@ export const KanaChart: React.FC = () => {
     return parts.map((part, i) => 
       part === kana ? <strong key={i} className="text-sakura-rose font-black">{part}</strong> : part
     );
+  };
+
+  const getUnicodeHex = (char: string) => {
+    return char.charCodeAt(0).toString(16).padStart(5, '0');
   };
 
   return (
@@ -153,18 +163,31 @@ export const KanaChart: React.FC = () => {
                 </button>
               </div>
 
-              <div className="p-4 md:p-6 max-h-[70vh] overflow-y-auto no-scrollbar">
-                <div className="flex items-center gap-2 mb-4 text-sakura-rose">
-                  <BookOpen size={18} />
-                  <span className="text-sm font-bold uppercase tracking-wider">常用单词示例</span>
-                </div>
+              {/* Tabs */}
+              <div className="flex border-b border-sakura-pink/10 bg-white">
+                <button
+                  onClick={() => setActiveTab('examples')}
+                  className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${activeTab === 'examples' ? 'text-sakura-rose border-b-2 border-sakura-rose bg-sakura-pink/5' : 'text-sakura-rose/40 hover:text-sakura-rose hover:bg-sakura-pink/5'}`}
+                >
+                  <BookOpen size={14} />
+                  常用单词
+                </button>
+                <button
+                  onClick={() => setActiveTab('writing')}
+                  className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${activeTab === 'writing' ? 'text-sakura-rose border-b-2 border-sakura-rose bg-sakura-pink/5' : 'text-sakura-rose/40 hover:text-sakura-rose hover:bg-sakura-pink/5'}`}
+                >
+                  <PencilLine size={14} />
+                  书写指南
+                </button>
+              </div>
 
+              <div className="p-4 md:p-6 max-h-[70vh] overflow-y-auto no-scrollbar">
                 {loading ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-4 text-sakura-pink/40">
                     <Loader2 className="w-8 h-8 animate-spin" />
-                    <p className="text-sm italic font-serif">AI 正在联想单词...</p>
+                    <p className="text-sm italic font-serif">AI 正在联想中...</p>
                   </div>
-                ) : (
+                ) : activeTab === 'examples' ? (
                   <div className="space-y-6">
                     {examples.map((ex, i) => (
                       <motion.div
@@ -214,6 +237,14 @@ export const KanaChart: React.FC = () => {
                         </div>
                       </motion.div>
                     ))}
+                  </div>
+                ) : (
+                  <div className="py-4 flex flex-col items-center justify-center">
+                    <WritingCanvas 
+                      kana={selectedKana.char} 
+                      romaji={selectedKana.romaji} 
+                      strokeOrderUrl={`https://raw.githubusercontent.com/kanjivg/kanjivg/master/kanji/${getUnicodeHex(selectedKana.char)}.svg`}
+                    />
                   </div>
                 )}
               </div>

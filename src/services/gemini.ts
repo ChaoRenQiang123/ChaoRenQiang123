@@ -355,10 +355,14 @@ export const analyzeSelectedText = async (text: string, context: string): Promis
 };
 
 export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> => {
+  const isKatakana = /[\u30A0-\u30FF]/.test(kana);
+  const prompt = `Generate 3 common Japanese vocabulary words that contain the kana "${kana}". 
+    ${isKatakana ? 'Since this is a Katakana character, please prioritize using common loanwords (Gairaigo) that are frequently used in daily life (e.g., "カメラ", "パン", "トイレ").' : ''}
+    For each word, provide its reading (hiragana), meaning (Chinese), and an example sentence with its reading and meaning.`;
+
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Generate 3 common Japanese vocabulary words that contain the kana "${kana}". 
-    For each word, provide its reading (hiragana), meaning (Chinese), and an example sentence with its reading and meaning.`,
+    contents: prompt,
     config: {
       responseMimeType: "application/json",
       responseSchema: {

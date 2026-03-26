@@ -1,21 +1,105 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { KanaChart } from './components/KanaChart';
 import { Translator } from './components/Translator';
 import { ReadingAnalysis } from './components/ReadingAnalysis';
 import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
-import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle } from 'lucide-react';
-import { startPreloading } from './services/dataService';
+import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2 } from 'lucide-react';
+import { preloadWithProgress, PreloadProgress } from './services/dataService';
+
+const TIPS = [
+  "点击五十音图中的假名，可以查看单词示例并听发音哦！",
+  "核心词表按使用频率排序，助您更高效地掌握常用词汇。",
+  "语法讲堂提供详细的用法说明和练习题，巩固学习效果。",
+  "模拟真题阅读支持点击取词分析，深度解析复杂句子。",
+  "智能助手可以自动为日文添加振假名，辅助您阅读长难句。",
+  "在核心词表中，您可以根据 JLPT 等级筛选不同难度的词汇。",
+  "所有的音频示例均由 AI 实时生成，为您提供最地道的发音。"
+];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
+  const [isLoading, setIsLoading] = useState(true);
+  const [tipIndex, setTipIndex] = useState(0);
+  const [progress, setProgress] = useState<PreloadProgress>({
+    total: 0,
+    completed: 0,
+    percentage: 0,
+    currentTask: '初始化中...'
+  });
 
   useEffect(() => {
-    // Start preloading data in the background to reduce wait time
-    startPreloading();
+    // Rotate tips every 3 seconds
+    const tipInterval = setInterval(() => {
+      setTipIndex((prev) => (prev + 1) % TIPS.length);
+    }, 3000);
+
+    // Start preloading data with progress tracking
+    const load = async () => {
+      await preloadWithProgress((p) => {
+        setProgress(p);
+      });
+      // Small delay to let the user see 100%
+      setTimeout(() => setIsLoading(false), 500);
+    };
+    load();
+
+    return () => clearInterval(tipInterval);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-sakura-light flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-24 h-24 bg-sakura-rose rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-sakura-pink/30 mb-8"
+        >
+          <Flower size={48} className="animate-pulse" />
+        </motion.div>
+        
+        <h2 className="text-3xl font-serif italic text-sakura-deep mb-2">Sakura Learn</h2>
+        <p className="text-sakura-rose/60 mb-12 italic">正在为您准备学习资源...</p>
+        
+        <div className="w-full max-w-md bg-white/50 rounded-full h-3 border border-sakura-pink/10 overflow-hidden mb-4">
+          <motion.div 
+            className="h-full bg-sakura-rose"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress.percentage}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+        
+        <div className="flex justify-between w-full max-w-md text-[10px] uppercase tracking-widest text-sakura-rose/40 font-mono mb-12">
+          <span>{progress.percentage}%</span>
+          <span>{progress.completed} / {progress.total}</span>
+        </div>
+
+        {/* Feature Introduction / Tips */}
+        <div className="h-16 flex items-center justify-center mb-8 max-w-md">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={tipIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5 }}
+              className="text-sm md:text-base text-sakura-deep/80 font-serif italic leading-relaxed"
+            >
+              “ {TIPS[tipIndex]} ”
+            </motion.p>
+          </AnimatePresence>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sakura-rose/60 text-xs font-serif italic">
+          <Loader2 size={14} className="animate-spin" />
+          <span>{progress.currentTask}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-sakura-light text-sakura-deep font-sans selection:bg-sakura-pink/30">

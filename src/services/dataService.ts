@@ -60,18 +60,71 @@ export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean =
   return fetchWithCache(cacheKey, () => generateKanaExamples(kana), forceRefresh);
 };
 
-export const startPreloading = () => {
-  // Preload page 1 and 2 for common levels
-  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    prefetchVocabulary(level, 1);
-    prefetchVocabulary(level, 2);
-  });
-  
-  prefetchGrammar('N5');
-  prefetchReading('N3');
+export type PreloadProgress = {
+  total: number;
+  completed: number;
+  percentage: number;
+  currentTask: string;
+};
 
-  // Preload common kana (vowels)
-  ['あ', 'い', 'う', 'え', 'お', 'ア', 'イ', 'ウ', 'エ', 'オ'].forEach(kana => {
-    prefetchKanaExamples(kana);
+export const preloadWithProgress = async (onProgress: (progress: PreloadProgress) => void) => {
+  const tasks: { name: string; fn: () => Promise<any> }[] = [];
+
+  // 1. Vocabulary (N5-N3, first 3 pages each)
+  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
+    [1, 2, 3].forEach(page => {
+      tasks.push({
+        name: `加载 ${level} 词汇 - 第 ${page} 页`,
+        fn: () => prefetchVocabulary(level, page)
+      });
+    });
   });
+
+  // 2. Grammar (N5-N3)
+  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
+    tasks.push({
+      name: `加载 ${level} 核心语法`,
+      fn: () => prefetchGrammar(level)
+    });
+  });
+
+  // 3. Reading (N5-N3)
+  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
+    tasks.push({
+      name: `加载 ${level} 模拟阅读`,
+      fn: () => prefetchReading(level)
+    });
+  });
+
+  // 4. Kana Examples (All vowels and common consonants)
+  const commonKana = ['あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ', 'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と', 'な', 'に', 'ぬ', 'ね', 'の'];
+  commonKana.forEach(kana => {
+    tasks.push({
+      name: `加载假名示例: ${kana}`,
+      fn: () => prefetchKanaExamples(kana)
+    });
+  });
+
+  const total = tasks.length;
+  let completed = 0;
+
+  // Execute tasks with some concurrency but not all at once to avoid overwhelming the API
+  const batchSize = 3;
+  for (let i = 0; i < tasks.length; i += batchSize) {
+    const batch = tasks.slice(i, i + batchSize);
+    await Promise.all(batch.map(async (task) => {
+      try {
+        await task.fn();
+      } catch (e) {
+        console.error(`Preload failed for ${task.name}`, e);
+      }
+      completed++;
+      onProgress({
+        total,
+        completed,
+        percentage: Math.round((completed / total) * 100),
+        currentTask: task.name
+      });
+    }));
+  }
 };
