@@ -103,7 +103,7 @@ export const KanaChart: React.FC = () => {
             <div className="group relative">
               <Info size={14} className="text-sakura-rose/30 cursor-help hover:text-sakura-rose transition-colors" />
               <div className="absolute left-0 top-full mt-2 w-48 p-2 bg-white rounded-xl shadow-xl border border-sakura-pink/20 text-[10px] text-sakura-rose/60 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                💡 点击任意假名卡片，即可查看详细发音、常用单词及交互式书写指南。
+                💡 点击任意假名卡片，即可查看详细发音、常用单词及交互式书写练习。
               </div>
             </div>
           </h2>
@@ -125,7 +125,7 @@ export const KanaChart: React.FC = () => {
         <div className="flex items-center gap-2 px-3 py-1.5 bg-sakura-pink/5 rounded-xl border border-sakura-pink/10">
           <Sparkles size={12} className="text-sakura-rose animate-pulse" />
           <p className="text-[10px] md:text-xs text-sakura-rose/60 font-serif italic">
-            点击假名探索发音、单词及书写指南
+            点击假名探索发音、单词及书写练习
           </p>
         </div>
       </div>
@@ -198,7 +198,7 @@ export const KanaChart: React.FC = () => {
                   className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${activeTab === 'writing' ? 'text-sakura-rose border-b-2 border-sakura-rose bg-sakura-pink/5' : 'text-sakura-rose/40 hover:text-sakura-rose hover:bg-sakura-pink/5'}`}
                 >
                   <PencilLine size={14} />
-                  书写指南
+                  书写练习
                 </button>
               </div>
 

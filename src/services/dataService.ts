@@ -56,7 +56,7 @@ export const prefetchReading = async (level: JLPTLevel = 'N3', forceRefresh: boo
 };
 
 export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
-  const cacheKey = `kana_examples_cache_${kana}`;
+  const cacheKey = `kana_examples_cache_v3_${kana}`;
   return fetchWithCache(cacheKey, () => generateKanaExamples(kana), forceRefresh);
 };
 

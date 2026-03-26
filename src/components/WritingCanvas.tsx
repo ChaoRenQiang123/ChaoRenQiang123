@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { RotateCcw, Eraser, Download, Loader2 } from 'lucide-react';
+import { PencilLine, RotateCcw } from 'lucide-react';
 
 interface WritingCanvasProps {
   kana: string;
@@ -7,17 +7,10 @@ interface WritingCanvasProps {
   strokeOrderUrl?: string;
 }
 
-export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, romaji, strokeOrderUrl }) => {
+export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, strokeOrderUrl }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [gifLoading, setGifLoading] = useState(true);
-  const [gifError, setGifError] = useState(false);
-
-  useEffect(() => {
-    setGifLoading(true);
-    setGifError(false);
-  }, [kana]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,6 +32,9 @@ export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, romaji, stro
     context.lineWidth = 6;
 
     setCtx(context);
+    
+    // Clear canvas when kana changes
+    context.clearRect(0, 0, canvas.width, canvas.height);
   }, [kana]);
 
   const startDrawing = (e: React.PointerEvent) => {
@@ -78,7 +74,7 @@ export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, romaji, stro
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full">
+    <div className="flex flex-col items-center gap-6 w-full py-4">
       <div className="relative group">
         {/* Canvas Container */}
         <div className="relative w-64 h-64 md:w-80 md:h-80 bg-white rounded-3xl shadow-inner border-2 border-sakura-pink/20 overflow-hidden touch-none">
@@ -120,8 +116,8 @@ export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, romaji, stro
 
       <div className="flex flex-col items-center text-center max-w-xs">
         <h4 className="text-lg font-bold text-sakura-deep flex items-center gap-2">
-          <Eraser size={18} className="text-sakura-rose" />
-          练习书写: {kana}
+          <PencilLine size={18} className="text-sakura-rose" />
+          书写练习: {kana}
         </h4>
         <p className="text-xs text-sakura-rose/60 mt-2 font-serif italic leading-relaxed">
           请在上方区域临摹假名。虚影和虚线可以帮助您更好地掌握间架结构。
@@ -131,48 +127,15 @@ export const WritingCanvas: React.FC<WritingCanvasProps> = ({ kana, romaji, stro
       {strokeOrderUrl && (
         <div className="mt-4 p-4 bg-sakura-light/30 rounded-2xl border border-sakura-pink/10 w-full">
           <p className="text-[10px] text-sakura-rose/40 uppercase tracking-widest font-bold mb-3 text-center">
-            {gifError ? '笔顺参考 (静态)' : '笔顺动图演示'}
+            笔顺参考 (静态)
           </p>
-          <div className="flex justify-center relative min-h-[128px]">
-            {/* Loading Indicator */}
-            {gifLoading && !gifError && (
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <Loader2 className="w-6 h-6 animate-spin text-sakura-rose/40" />
-              </div>
-            )}
-
-            {/* Animated GIF */}
-            {!gifError && (
-              <img 
-                src={`https://raw.githubusercontent.com/jishidev/kanji-gif/master/gifs/${kana.charCodeAt(0).toString(16)}.gif`}
-                alt="Stroke Order Animation" 
-                className={`w-32 h-32 z-10 transition-opacity duration-300 ${gifLoading ? 'opacity-0' : 'opacity-100'}`}
-                onLoad={() => setGifLoading(false)}
-                onError={() => {
-                  setGifError(true);
-                  setGifLoading(false);
-                }}
-                referrerPolicy="no-referrer"
-              />
-            )}
-
-            {/* Fallback Static SVG */}
-            {gifError && (
-              <img 
-                src={strokeOrderUrl} 
-                alt="Stroke Order Static" 
-                className="w-32 h-32 opacity-60 grayscale hover:grayscale-0 transition-all"
-                referrerPolicy="no-referrer"
-              />
-            )}
-
-            {!gifError && !gifLoading && (
-              <div className="absolute bottom-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-sakura-rose/10 text-sakura-rose text-[8px] px-2 py-0.5 rounded-full backdrop-blur-sm border border-sakura-rose/20">
-                  ANIMATED
-                </div>
-              </div>
-            )}
+          <div className="flex justify-center">
+            <img 
+              src={strokeOrderUrl} 
+              alt={`Stroke order for ${kana}`}
+              className="w-32 h-32 opacity-80"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
       )}
