@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ReadingPassage, JLPTLevel, AnalysisResult, SavedItem } from '../types';
 import { analyzeSelectedText } from '../services/gemini';
 import { prefetchReading } from '../services/dataService';
-import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2, Sparkles, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const ReadingAnalysis: React.FC = () => {
@@ -89,31 +89,47 @@ export const ReadingAnalysis: React.FC = () => {
       {/* Left Column: Passage */}
       <div className="lg:col-span-2 space-y-6">
         <div className="p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 min-h-[400px] md:min-h-[500px] flex flex-col">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-sakura-pink/10 rounded-xl">
-                <BookOpen size={20} className="text-sakura-rose" />
+          <div className="flex flex-col gap-2 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-sakura-pink/10 rounded-xl">
+                  <BookOpen size={20} className="text-sakura-rose" />
+                </div>
+                <h2 className="text-2xl font-serif italic text-sakura-deep flex items-center gap-2">
+                  模拟真题阅读
+                  <div className="group relative">
+                    <Info size={14} className="text-sakura-rose/30 cursor-help hover:text-sakura-rose transition-colors" />
+                    <div className="absolute left-0 top-full mt-2 w-48 p-2 bg-white rounded-xl shadow-xl border border-sakura-pink/20 text-[10px] text-sakura-rose/60 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                      💡 选中文章中的任意句子或单词，AI 将为您提供即时的语法解析和翻译。
+                    </div>
+                  </div>
+                </h2>
               </div>
-              <h2 className="text-2xl font-serif italic text-sakura-deep">模拟真题阅读</h2>
+              <div className="flex flex-wrap gap-2">
+                <select 
+                  value={level} 
+                  onChange={(e) => setLevel(e.target.value as JLPTLevel)}
+                  className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
+                >
+                  {['N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+                <select 
+                  value={topic} 
+                  onChange={(e) => setTopic(e.target.value)}
+                  className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
+                >
+                  {topics.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+                <button onClick={() => fetchPassage(true)} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
+                  <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                </button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <select 
-                value={level} 
-                onChange={(e) => setLevel(e.target.value as JLPTLevel)}
-                className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
-              >
-                {['N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
-              </select>
-              <select 
-                value={topic} 
-                onChange={(e) => setTopic(e.target.value)}
-                className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
-              >
-                {topics.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              <button onClick={() => fetchPassage(true)} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
-                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-              </button>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-sakura-pink/5 rounded-xl border border-sakura-pink/10">
+              <Sparkles size={12} className="text-sakura-rose animate-pulse" />
+              <p className="text-[10px] md:text-xs text-sakura-rose/60 font-serif italic">
+                涂黑选中文字即可查看 AI 深度解析
+              </p>
             </div>
           </div>
 
@@ -132,8 +148,9 @@ export const ReadingAnalysis: React.FC = () => {
               >
                 {passage.content}
               </div>
-              <div className="mt-12 pt-6 border-t border-sakura-pink/10 text-[10px] md:text-xs text-sakura-rose/40 italic">
-                提示：涂黑选中文字即可在下方查看解析。
+              <div className="mt-12 pt-6 border-t border-sakura-pink/10 flex items-center gap-2 text-[10px] md:text-xs text-sakura-rose/40 italic">
+                <div className="w-1.5 h-1.5 rounded-full bg-sakura-rose/40 animate-pulse" />
+                提示：涂黑选中文字即可在右侧（或下方）查看 AI 深度解析。
               </div>
 
               {/* MCQ Section */}

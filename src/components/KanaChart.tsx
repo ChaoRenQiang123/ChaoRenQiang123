@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Loader2, BookOpen, Volume2, PencilLine } from 'lucide-react';
+import { X, Loader2, BookOpen, Volume2, PencilLine, Sparkles, Info } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
 import { generateAudio } from '../services/gemini';
 import { prefetchKanaExamples } from '../services/dataService';
@@ -96,21 +96,37 @@ export const KanaChart: React.FC = () => {
 
   return (
     <div className="p-3 md:p-4 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 relative" id="kana-chart">
-      <div className="flex justify-between items-center mb-4 md:mb-6">
-        <h2 className="text-lg md:text-xl font-serif italic text-sakura-deep">五十音图</h2>
-        <div className="flex gap-1 bg-sakura-pink/10 p-1 rounded-full">
-          <button
-            onClick={() => setType('hiragana')}
-            className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'hiragana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
-          >
-            平假名
-          </button>
-          <button
-            onClick={() => setType('katakana')}
-            className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'katakana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
-          >
-            片假名
-          </button>
+      <div className="flex flex-col gap-2 mb-4 md:mb-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg md:text-xl font-serif italic text-sakura-deep flex items-center gap-2">
+            五十音图
+            <div className="group relative">
+              <Info size={14} className="text-sakura-rose/30 cursor-help hover:text-sakura-rose transition-colors" />
+              <div className="absolute left-0 top-full mt-2 w-48 p-2 bg-white rounded-xl shadow-xl border border-sakura-pink/20 text-[10px] text-sakura-rose/60 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                💡 点击任意假名卡片，即可查看详细发音、常用单词及交互式书写指南。
+              </div>
+            </div>
+          </h2>
+          <div className="flex gap-1 bg-sakura-pink/10 p-1 rounded-full">
+            <button
+              onClick={() => setType('hiragana')}
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'hiragana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+            >
+              平假名
+            </button>
+            <button
+              onClick={() => setType('katakana')}
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'katakana' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+            >
+              片假名
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-sakura-pink/5 rounded-xl border border-sakura-pink/10">
+          <Sparkles size={12} className="text-sakura-rose animate-pulse" />
+          <p className="text-[10px] md:text-xs text-sakura-rose/60 font-serif italic">
+            点击假名探索发音、单词及书写指南
+          </p>
         </div>
       </div>
 
@@ -120,10 +136,15 @@ export const KanaChart: React.FC = () => {
             key={index}
             onClick={() => handleKanaClick(item)}
             onMouseEnter={() => handleMouseEnter(item)}
-            className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
+            className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all relative group/card ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
           >
             <span className="text-lg md:text-xl font-medium text-sakura-deep leading-none">{item.char}</span>
             <span className="text-[8px] md:text-[9px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+            {item.char && (
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none">
+                <div className="w-full h-full bg-sakura-rose/5 rounded-xl border border-sakura-rose/20" />
+              </div>
+            )}
           </div>
         ))}
       </div>
