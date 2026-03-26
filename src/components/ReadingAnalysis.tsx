@@ -148,10 +148,6 @@ export const ReadingAnalysis: React.FC = () => {
               >
                 {passage.content}
               </div>
-              <div className="mt-12 pt-6 border-t border-sakura-pink/10 flex items-center gap-2 text-[10px] md:text-xs text-sakura-rose/40 italic">
-                <div className="w-1.5 h-1.5 rounded-full bg-sakura-rose/40 animate-pulse" />
-                提示：涂黑选中文字即可在右侧（或下方）查看 AI 深度解析。
-              </div>
 
               {/* MCQ Section */}
               {passage.question && (
