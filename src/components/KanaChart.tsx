@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, BookOpen, Volume2, PencilLine, Sparkles, Info } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
-import { generateAudio } from '../services/gemini';
 import { prefetchKanaExamples } from '../services/dataService';
+import { generateAudio } from '../services/gemini';
 import { playRawAudio } from '../utils/audio';
 import { WritingCanvas } from './WritingCanvas';
 
@@ -35,8 +35,90 @@ const katakana: Kana[] = [
   { char: 'ン', romaji: 'n', type: 'katakana' }
 ];
 
+const dakuonHiragana: Kana[] = [
+  { char: 'が', romaji: 'ga', type: 'hiragana' }, { char: 'ぎ', romaji: 'gi', type: 'hiragana' }, { char: 'ぐ', romaji: 'gu', type: 'hiragana' }, { char: 'げ', romaji: 'ge', type: 'hiragana' }, { char: 'ご', romaji: 'go', type: 'hiragana' },
+  { char: 'ざ', romaji: 'za', type: 'hiragana' }, { char: 'じ', romaji: 'ji', type: 'hiragana' }, { char: 'ず', romaji: 'zu', type: 'hiragana' }, { char: 'ぜ', romaji: 'ze', type: 'hiragana' }, { char: 'ぞ', romaji: 'zo', type: 'hiragana' },
+  { char: 'だ', romaji: 'da', type: 'hiragana' }, { char: 'ぢ', romaji: 'ji', type: 'hiragana' }, { char: 'づ', romaji: 'zu', type: 'hiragana' }, { char: 'で', romaji: 'de', type: 'hiragana' }, { char: 'ど', romaji: 'do', type: 'hiragana' },
+  { char: 'ば', romaji: 'ba', type: 'hiragana' }, { char: 'び', romaji: 'bi', type: 'hiragana' }, { char: 'ぶ', romaji: 'bu', type: 'hiragana' }, { char: 'べ', romaji: 'be', type: 'hiragana' }, { char: 'ぼ', romaji: 'bo', type: 'hiragana' },
+  { char: 'ぱ', romaji: 'pa', type: 'hiragana' }, { char: 'ぴ', romaji: 'pi', type: 'hiragana' }, { char: 'ぷ', romaji: 'pu', type: 'hiragana' }, { char: 'ぺ', romaji: 'pe', type: 'hiragana' }, { char: 'ぽ', romaji: 'po', type: 'hiragana' }
+];
+
+const dakuonKatakana: Kana[] = [
+  { char: 'ガ', romaji: 'ga', type: 'katakana' }, { char: 'ギ', romaji: 'gi', type: 'katakana' }, { char: 'グ', romaji: 'gu', type: 'katakana' }, { char: 'ゲ', romaji: 'ge', type: 'katakana' }, { char: 'ゴ', romaji: 'go', type: 'katakana' },
+  { char: 'ザ', romaji: 'za', type: 'katakana' }, { char: 'ジ', romaji: 'ji', type: 'katakana' }, { char: 'ズ', romaji: 'zu', type: 'katakana' }, { char: 'ゼ', romaji: 'ze', type: 'katakana' }, { char: 'ゾ', romaji: 'zo', type: 'katakana' },
+  { char: 'ダ', romaji: 'da', type: 'katakana' }, { char: 'ヂ', romaji: 'ji', type: 'katakana' }, { char: 'ヅ', romaji: 'zu', type: 'katakana' }, { char: 'デ', romaji: 'de', type: 'katakana' }, { char: 'ド', romaji: 'do', type: 'katakana' },
+  { char: 'バ', romaji: 'ba', type: 'katakana' }, { char: 'ビ', romaji: 'bi', type: 'katakana' }, { char: 'ブ', romaji: 'bu', type: 'katakana' }, { char: 'ベ', romaji: 'be', type: 'katakana' }, { char: 'ボ', romaji: 'bo', type: 'katakana' },
+  { char: 'パ', romaji: 'pa', type: 'katakana' }, { char: 'ピ', romaji: 'pi', type: 'katakana' }, { char: 'プ', romaji: 'pu', type: 'katakana' }, { char: 'ペ', romaji: 'pe', type: 'katakana' }, { char: 'ポ', romaji: 'po', type: 'katakana' }
+];
+
+const yoonHiragana: Kana[] = [
+  { char: 'きゃ', romaji: 'kya', type: 'hiragana' }, { char: 'きゅ', romaji: 'kyu', type: 'hiragana' }, { char: 'きょ', romaji: 'kyo', type: 'hiragana' },
+  { char: 'しゃ', romaji: 'sha', type: 'hiragana' }, { char: 'しゅ', romaji: 'shu', type: 'hiragana' }, { char: 'しょ', romaji: 'sho', type: 'hiragana' },
+  { char: 'ちゃ', romaji: 'cha', type: 'hiragana' }, { char: 'ちゅ', romaji: 'chu', type: 'hiragana' }, { char: 'ちょ', romaji: 'cho', type: 'hiragana' },
+  { char: 'にゃ', romaji: 'nya', type: 'hiragana' }, { char: 'にゅ', romaji: 'nyu', type: 'hiragana' }, { char: 'にょ', romaji: 'nyo', type: 'hiragana' },
+  { char: 'ひゃ', romaji: 'hya', type: 'hiragana' }, { char: 'ひゅ', romaji: 'hyu', type: 'hiragana' }, { char: 'ひょ', romaji: 'hyo', type: 'hiragana' },
+  { char: 'みゃ', romaji: 'mya', type: 'hiragana' }, { char: 'みゅ', romaji: 'myu', type: 'hiragana' }, { char: 'みょ', romaji: 'myo', type: 'hiragana' },
+  { char: 'りゃ', romaji: 'rya', type: 'hiragana' }, { char: 'りゅ', romaji: 'ryu', type: 'hiragana' }, { char: 'りょ', romaji: 'ryo', type: 'hiragana' },
+  { char: 'ぎゃ', romaji: 'gya', type: 'hiragana' }, { char: 'ぎゅ', romaji: 'gyu', type: 'hiragana' }, { char: 'ぎょ', romaji: 'gyo', type: 'hiragana' },
+  { char: 'じゃ', romaji: 'ja', type: 'hiragana' }, { char: 'じゅ', romaji: 'ju', type: 'hiragana' }, { char: 'じょ', romaji: 'jo', type: 'hiragana' },
+  { char: 'びゃ', romaji: 'bya', type: 'hiragana' }, { char: 'びゅ', romaji: 'byu', type: 'hiragana' }, { char: 'びょ', romaji: 'byo', type: 'hiragana' },
+  { char: 'ぴゃ', romaji: 'pya', type: 'hiragana' }, { char: 'ぴゅ', romaji: 'pyu', type: 'hiragana' }, { char: 'ぴょ', romaji: 'pyo', type: 'hiragana' }
+];
+
+const yoonKatakana: Kana[] = [
+  { char: 'キャ', romaji: 'kya', type: 'katakana' }, { char: 'キュ', romaji: 'kyu', type: 'katakana' }, { char: 'キョ', romaji: 'kyo', type: 'katakana' },
+  { char: 'シャ', romaji: 'sha', type: 'katakana' }, { char: 'シュ', romaji: 'shu', type: 'katakana' }, { char: 'ショ', romaji: 'sho', type: 'katakana' },
+  { char: 'チャ', romaji: 'cha', type: 'katakana' }, { char: 'チュ', romaji: 'chu', type: 'katakana' }, { char: 'チョ', romaji: 'cho', type: 'katakana' },
+  { char: 'ニャ', romaji: 'nya', type: 'katakana' }, { char: 'ニュ', romaji: 'nyu', type: 'katakana' }, { char: 'ニョ', romaji: 'nyo', type: 'katakana' },
+  { char: 'ヒャ', romaji: 'hya', type: 'katakana' }, { char: 'ヒュ', romaji: 'hyu', type: 'katakana' }, { char: 'ヒョ', romaji: 'hyo', type: 'katakana' },
+  { char: 'ミャ', romaji: 'mya', type: 'katakana' }, { char: 'ミュ', romaji: 'myu', type: 'katakana' }, { char: 'ミョ', romaji: 'myo', type: 'katakana' },
+  { char: 'リャ', romaji: 'rya', type: 'katakana' }, { char: 'リュ', romaji: 'ryu', type: 'katakana' }, { char: 'リョ', romaji: 'ryo', type: 'katakana' },
+  { char: 'ギャ', romaji: 'gya', type: 'katakana' }, { char: 'ギュ', romaji: 'gyu', type: 'katakana' }, { char: 'ギョ', romaji: 'gyo', type: 'katakana' },
+  { char: 'ジャ', romaji: 'ja', type: 'katakana' }, { char: 'ジュ', romaji: 'ju', type: 'katakana' }, { char: 'ジョ', romaji: 'jo', type: 'katakana' },
+  { char: 'ビャ', romaji: 'bya', type: 'katakana' }, { char: 'ビュ', romaji: 'byu', type: 'katakana' }, { char: 'ビョ', romaji: 'byo', type: 'katakana' },
+  { char: 'ピャ', romaji: 'pya', type: 'katakana' }, { char: 'ピュ', romaji: 'pyu', type: 'katakana' }, { char: 'ピョ', romaji: 'pyo', type: 'katakana' }
+];
+
+const specialSounds = [
+  {
+    id: 'choon',
+    title: "长音 (Chōon)",
+    description: "将元音拉长一拍。平假名通过添加元音实现，片假名使用“ー”。",
+    examples: [
+      { jp: "おかあさん", ro: "okaasan", cn: "母亲 (a段+あ)" },
+      { jp: "おにいさん", ro: "oniisan", cn: "哥哥 (i段+い)" },
+      { jp: "せんせい", ro: "sensei", cn: "老师 (e段+い)" },
+      { jp: "おとうさん", ro: "otousan", cn: "父亲 (o段+う)" },
+      { jp: "ケーキ", ro: "keeki", cn: "蛋糕 (片假名用ー)" }
+    ]
+  },
+  {
+    id: 'sokuon',
+    title: "促音 (Sokuon)",
+    description: "使用小写的“っ”或“ッ”，表示停顿一拍，通常使后续辅音双写。",
+    examples: [
+      { jp: "きって", ro: "kitte", cn: "邮票" },
+      { jp: "がっこう", ro: "gakkou", cn: "学校" },
+      { jp: "カップ", ro: "kappu", cn: "杯子" },
+      { jp: "ちょっと", ro: "chotto", cn: "稍微" }
+    ]
+  },
+  {
+    id: 'hatsuon',
+    title: "拨音 (Hatsuon)",
+    description: "假名“ん”或“ン”，不独立发音，占一拍，发音受后续音节影响。",
+    examples: [
+      { jp: "にほん", ro: "nihon", cn: "日本" },
+      { jp: "しんぶん", ro: "shinbun", cn: "报纸" },
+      { jp: "てんき", ro: "tenki", cn: "天气" },
+      { jp: "あんまり", ro: "anmari", cn: "不太..." }
+    ]
+  }
+];
+
 export const KanaChart: React.FC = () => {
-  const [type, setType] = useState<'hiragana' | 'katakana'>('hiragana');
+  const [type, setType] = useState<'hiragana' | 'katakana' | 'special'>('hiragana');
+  const [specialSubTab, setSpecialSubTab] = useState<'knowledge' | 'dakuon' | 'yoon'>('knowledge');
   const [selectedKana, setSelectedKana] = useState<Kana | null>(null);
   const [activeTab, setActiveTab] = useState<'examples' | 'writing'>('examples');
   const [examples, setExamples] = useState<Vocabulary[]>([]);
@@ -120,34 +202,177 @@ export const KanaChart: React.FC = () => {
             >
               片假名
             </button>
+            <button
+              onClick={() => setType('special')}
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-all ${type === 'special' ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
+            >
+              特殊发音
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-sakura-pink/5 rounded-xl border border-sakura-pink/10">
           <Sparkles size={12} className="text-sakura-rose animate-pulse" />
           <p className="text-[10px] md:text-xs text-sakura-rose/60 font-serif italic">
-            点击假名探索发音、单词及书写练习
+            {type === 'special' ? '探索日语中的浊音、拗音、长音等特殊发音' : '点击假名探索发音、单词及书写练习'}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-1 md:gap-2">
-        {data.map((item, index) => (
-          <div
-            key={index}
-            onClick={() => handleKanaClick(item)}
-            onMouseEnter={() => handleMouseEnter(item)}
-            className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all relative group/card ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
-          >
-            <span className="text-lg md:text-xl font-medium text-sakura-deep leading-none">{item.char}</span>
-            <span className="text-[8px] md:text-[9px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
-            {item.char && (
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none">
-                <div className="w-full h-full bg-sakura-rose/5 rounded-xl border border-sakura-rose/20" />
+      {type === 'special' ? (
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button
+              onClick={() => setSpecialSubTab('knowledge')}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${specialSubTab === 'knowledge' ? 'bg-sakura-rose text-white shadow-md' : 'bg-sakura-pink/5 text-sakura-rose/60 hover:bg-sakura-pink/10'}`}
+            >
+              发音知识
+            </button>
+            <button
+              onClick={() => setSpecialSubTab('dakuon')}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${specialSubTab === 'dakuon' ? 'bg-sakura-rose text-white shadow-md' : 'bg-sakura-pink/5 text-sakura-rose/60 hover:bg-sakura-pink/10'}`}
+            >
+              浊音/半浊音
+            </button>
+            <button
+              onClick={() => setSpecialSubTab('yoon')}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${specialSubTab === 'yoon' ? 'bg-sakura-rose text-white shadow-md' : 'bg-sakura-pink/5 text-sakura-rose/60 hover:bg-sakura-pink/10'}`}
+            >
+              拗音表
+            </button>
+          </div>
+
+          <div className="max-h-[60vh] overflow-y-auto no-scrollbar pr-1">
+            {specialSubTab === 'knowledge' && (
+              <div className="space-y-4">
+                {specialSounds.map((sound, idx) => (
+                  <motion.div
+                    key={sound.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="p-4 bg-white rounded-2xl border border-sakura-pink/10 shadow-sm"
+                  >
+                    <h3 className="text-sm font-bold text-sakura-deep mb-1 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-sakura-rose" />
+                      {sound.title}
+                    </h3>
+                    <p className="text-xs text-sakura-rose/60 mb-3 leading-relaxed">
+                      {sound.description}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {sound.examples.map((ex, eIdx) => (
+                        <div 
+                          key={eIdx}
+                          onClick={() => handlePlayAudio(ex.jp)}
+                          className="flex items-center justify-between p-2 bg-sakura-light/30 rounded-xl border border-sakura-pink/5 hover:bg-sakura-pink/10 transition-colors cursor-pointer group"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-sakura-deep group-hover:text-sakura-rose transition-colors">{ex.jp}</span>
+                            <span className="text-[10px] text-sakura-rose/40 font-mono uppercase">{ex.ro}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-sakura-rose/60 italic">{ex.cn}</span>
+                            <Volume2 size={12} className="text-sakura-rose/30 group-hover:text-sakura-rose" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {specialSubTab === 'dakuon' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">平假名 浊音/半浊音</h3>
+                  <div className="grid grid-cols-5 gap-2">
+                    {dakuonHiragana.map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleKanaClick(item)}
+                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
+                      >
+                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">片假名 浊音/半浊音</h3>
+                  <div className="grid grid-cols-5 gap-2">
+                    {dakuonKatakana.map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleKanaClick(item)}
+                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
+                      >
+                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {specialSubTab === 'yoon' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">平假名 拗音</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {yoonHiragana.map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleKanaClick(item)}
+                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
+                      >
+                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">片假名 拗音</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {yoonKatakana.map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleKanaClick(item)}
+                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
+                      >
+                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
+                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-5 gap-1 md:gap-2">
+          {data.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => handleKanaClick(item)}
+              onMouseEnter={() => handleMouseEnter(item)}
+              className={`h-12 md:h-14 flex flex-col items-center justify-center rounded-xl border transition-all relative group/card ${item.char ? 'bg-white border-sakura-pink/10 hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer active:scale-95' : 'border-transparent opacity-0'}`}
+            >
+              <span className="text-lg md:text-xl font-medium text-sakura-deep leading-none">{item.char}</span>
+              <span className="text-[8px] md:text-[9px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
+              {item.char && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none">
+                  <div className="w-full h-full bg-sakura-rose/5 rounded-xl border border-sakura-rose/20" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Kana Examples Modal */}
       <AnimatePresence>
