@@ -68,12 +68,13 @@ export type PreloadProgress = {
 };
 
 export const preloadWithProgress = async (onProgress: (progress: PreloadProgress) => void) => {
-  const tasks: { name: string; fn: () => Promise<any> }[] = [];
+  const allTasks: { name: string; fn: () => Promise<any> }[] = [];
 
   // 1. Vocabulary (N5-N3, first 3 pages each)
+  // Prioritize N5 and N4 first pages
   (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
     [1, 2, 3].forEach(page => {
-      tasks.push({
+      allTasks.push({
         name: `加载 ${level} 词汇 - 第 ${page} 页`,
         fn: () => prefetchVocabulary(level, page)
       });
@@ -82,7 +83,7 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
 
   // 2. Grammar (N5-N3)
   (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    tasks.push({
+    allTasks.push({
       name: `加载 ${level} 核心语法`,
       fn: () => prefetchGrammar(level)
     });
@@ -90,7 +91,7 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
 
   // 3. Reading (N5-N3)
   (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    tasks.push({
+    allTasks.push({
       name: `加载 ${level} 模拟阅读`,
       fn: () => prefetchReading(level)
     });
@@ -99,19 +100,23 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
   // 4. Kana Examples (All vowels and common consonants)
   const commonKana = ['あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ', 'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と', 'な', 'に', 'ぬ', 'ね', 'の'];
   commonKana.forEach(kana => {
-    tasks.push({
+    allTasks.push({
       name: `加载假名示例: ${kana}`,
       fn: () => prefetchKanaExamples(kana)
     });
   });
 
-  const total = tasks.length;
+  // Split tasks into Essential (first half) and Background (second half)
+  const essentialTasks = allTasks.slice(0, Math.ceil(allTasks.length / 2));
+  const backgroundTasks = allTasks.slice(Math.ceil(allTasks.length / 2));
+
+  const total = essentialTasks.length;
   let completed = 0;
 
-  // Execute tasks with some concurrency but not all at once to avoid overwhelming the API
+  // Execute essential tasks with concurrency
   const batchSize = 3;
-  for (let i = 0; i < tasks.length; i += batchSize) {
-    const batch = tasks.slice(i, i + batchSize);
+  for (let i = 0; i < essentialTasks.length; i += batchSize) {
+    const batch = essentialTasks.slice(i, i + batchSize);
     await Promise.all(batch.map(async (task) => {
       try {
         await task.fn();
@@ -127,4 +132,23 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
       });
     }));
   }
+
+  // Start background tasks without awaiting
+  (async () => {
+    // Wait for the app to transition to main view first
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    for (let i = 0; i < backgroundTasks.length; i += batchSize) {
+      const batch = backgroundTasks.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (task) => {
+        try {
+          await task.fn();
+        } catch (e) {
+          console.error(`Background load failed for ${task.name}`, e);
+        }
+      }));
+      // Small delay between batches to avoid network congestion
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  })();
 };
