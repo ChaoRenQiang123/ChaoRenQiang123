@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import dotenv from "dotenv";
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -17,23 +17,35 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // API Routes
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Gemini Proxy Route
 app.post("/api/gemini", async (req, res) => {
-  const { model, contents, config } = req.body;
-  
   try {
-    const response = await ai.models.generateContent({
-      model: model || "gemini-3-flash-preview",
-      contents,
-      config
-    });
+    const { model, contents, config } = req.body;
     
-    res.json({ text: response.text, candidates: response.candidates });
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    res.status(500).json({ error: "Failed to call Gemini API" });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server" });
+    }
+
+    const response = await genAI.models.generateContent({
+      model: model || "gemini-1.5-flash",
+      contents: contents,
+      config: config
+    });
+
+    res.json({ text: response.text });
+  } catch (error: any) {
+    console.error("Gemini Proxy Error:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch from Gemini API", 
+      details: error.message 
+    });
   }
 });
 

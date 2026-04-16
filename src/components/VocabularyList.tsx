@@ -6,7 +6,7 @@ import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2,
 import { motion, AnimatePresence } from 'motion/react';
 
 export const VocabularyList: React.FC = () => {
-  const [level, setLevel] = useState<JLPTLevel>('N3');
+  const [level, setLevel] = useState<JLPTLevel>('N5');
   const [words, setWords] = useState<Vocabulary[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);

@@ -6,7 +6,7 @@ import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2, S
 import { motion, AnimatePresence } from 'motion/react';
 
 export const ReadingAnalysis: React.FC = () => {
-  const [level, setLevel] = useState<JLPTLevel>('N3');
+  const [level, setLevel] = useState<JLPTLevel>('N5');
   const [topic, setTopic] = useState<string>('');
   const [passage, setPassage] = useState<ReadingPassage | null>(null);
   const [loading, setLoading] = useState(false);
@@ -111,7 +111,7 @@ export const ReadingAnalysis: React.FC = () => {
                   onChange={(e) => setLevel(e.target.value as JLPTLevel)}
                   className="bg-white border border-sakura-pink/20 rounded-full px-4 py-1.5 text-sm focus:outline-none focus:border-sakura-pink/40 text-sakura-deep"
                 >
-                  {['N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
+                  {['N5', 'N4', 'N3', 'N2', 'N1'].map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
                 <select 
                   value={topic} 

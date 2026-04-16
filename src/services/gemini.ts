@@ -1,19 +1,41 @@
 import { Type, Modality } from "@google/genai";
 import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint, WordDetail } from "../types";
 
-// Helper to call our backend API
+// Helper to call Gemini API via backend proxy
 const callGeminiApi = async (params: { model?: string; contents: any; config?: any }) => {
-  const response = await fetch("/api/gemini", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API call failed: ${response.statusText}`);
+  try {
+    const response = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.details || errorData.error || "Failed to fetch from Gemini proxy");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Gemini API Proxy Error:", error);
+    throw error;
   }
-  
-  return await response.json();
+};
+
+// Helper to extract JSON from model response
+const extractJson = (text: string) => {
+  if (!text) return null;
+  // Remove markdown code blocks if present
+  const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```([\s\S]*?)```/);
+  const jsonStr = jsonMatch ? jsonMatch[1].trim() : text.trim();
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.error("Failed to parse JSON from Gemini response:", e, "Original text:", text);
+    return null;
+  }
 };
 
 export const generateWordDetail = async (word: string, reading: string, meaning: string): Promise<WordDetail | null> => {
@@ -63,7 +85,7 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
       },
     });
 
-    return JSON.parse(data.text || "null");
+    return extractJson(data.text);
   } catch (e) {
     console.error("Failed to parse word detail", e);
     return null;
@@ -133,7 +155,7 @@ export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]
       },
     });
 
-    return JSON.parse(data.text || "[]");
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to parse vocabulary", e);
     return [];
@@ -166,7 +188,7 @@ export const generateVocabularyList = async (level: JLPTLevel, page: number): Pr
       },
     });
 
-    return JSON.parse(data.text || "[]");
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to parse vocabulary list", e);
     return [];
@@ -196,7 +218,7 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
       },
     });
 
-    return JSON.parse(data.text || '{"translated": ""}');
+    return extractJson(data.text) || { translated: "" };
   } catch (e) {
     console.error("Failed to parse translation", e);
     return { translated: "" };
@@ -221,7 +243,7 @@ export const translateWithFurigana = async (text: string): Promise<{ translated:
       },
     });
 
-    return JSON.parse(data.text || '{"translated": "", "furigana": ""}');
+    return extractJson(data.text) || { translated: "", furigana: "" };
   } catch (e) {
     console.error("Failed to parse translation", e);
     return { translated: "", furigana: "" };
@@ -273,7 +295,7 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
       },
     });
 
-    const parsed = JSON.parse(data.text || "[]");
+    const parsed = extractJson(data.text) || [];
     return parsed.map((item: any) => ({
       ...item,
       id: Math.random().toString(36).substr(2, 9),
@@ -287,7 +309,7 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
 export const generateReadingPassage = async (level: JLPTLevel, topic?: string): Promise<ReadingPassage> => {
   const topics = [
     "politics (政治)", "economy (経済)", "culture (文化)", "daily life (生活)", 
-    "history (歴史)", "basic science (基礎科学)", "environment (環境)", 
+    "history (历史)", "basic science (基础科学)", "environment (环境)", 
     "education (教育)", "society (社会)", "art (艺术)"
   ];
   const selectedTopic = topic || topics[Math.floor(Math.random() * topics.length)];
@@ -325,7 +347,7 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
       },
     });
 
-    const parsed = JSON.parse(data.text || '{"title": "", "content": ""}');
+    const parsed = extractJson(data.text) || { title: "", content: "" };
     return {
       id: Math.random().toString(36).substr(2, 9),
       level,
@@ -375,7 +397,7 @@ export const analyzeSelectedText = async (text: string, context: string): Promis
       },
     });
 
-    return JSON.parse(data.text || '{"translation": "", "grammarPoints": []}');
+    return extractJson(data.text) || { translation: "", grammarPoints: [] };
   } catch (e) {
     console.error("Failed to parse analysis", e);
     return { translation: "", grammarPoints: [] };
@@ -416,7 +438,7 @@ export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> 
       },
     });
 
-    return JSON.parse(data.text || "[]");
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to parse kana examples", e);
     return [];

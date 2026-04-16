@@ -40,7 +40,7 @@ const fetchWithCache = async <T>(
   return fetchPromise;
 };
 
-export const prefetchVocabulary = async (level: JLPTLevel = 'N3', page: number = 1, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
+export const prefetchVocabulary = async (level: JLPTLevel = 'N5', page: number = 1, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
   const cacheKey = `sakura_vocab_v2_${level}_${page}`;
   return fetchWithCache(cacheKey, () => generateVocabularyList(level, page), forceRefresh);
 };
@@ -50,7 +50,7 @@ export const prefetchGrammar = async (level: JLPTLevel = 'N5', forceRefresh: boo
   return fetchWithCache(cacheKey, () => generateGrammarPoints(level), forceRefresh);
 };
 
-export const prefetchReading = async (level: JLPTLevel = 'N3', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {
+export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {
   const cacheKey = `reading_passage_cache_${level}_${topic || 'random'}`;
   return fetchWithCache(cacheKey, () => generateReadingPassage(level, topic), forceRefresh);
 };
