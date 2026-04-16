@@ -41,7 +41,7 @@ const extractJson = (text: string) => {
 export const generateWordDetail = async (word: string, reading: string, meaning: string): Promise<WordDetail | null> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
       1. Identify its word type (e.g., Verb, Adjective, Noun).
       2. Provide a natural example sentence in Japanese, its reading, and Chinese translation.
@@ -133,7 +133,7 @@ export const generateAudio = async (text: string): Promise<string | null> => {
 export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Generate 5 common Japanese vocabulary words for JLPT ${level} level. Provide the meaning in Chinese, and an example sentence with its reading and Chinese meaning.`,
       config: {
         responseMimeType: "application/json",
@@ -165,7 +165,7 @@ export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]
 export const generateVocabularyList = async (level: JLPTLevel, page: number): Promise<Vocabulary[]> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Generate a list of 50 common Japanese vocabulary words for JLPT ${level} level. 
       The words MUST be ordered by their frequency of appearance in the JLPT exam and daily life (most frequent words first). 
       For page ${page}, please provide the ${ (page - 1) * 50 + 1 }th to ${ page * 50 }th most frequent words for this level.
@@ -203,7 +203,7 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
 
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -228,7 +228,7 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
 export const translateWithFurigana = async (text: string): Promise<{ translated: string; furigana: string }> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`,
       config: {
         responseMimeType: "application/json",
@@ -253,7 +253,7 @@ export const translateWithFurigana = async (text: string): Promise<{ translated:
 export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPoint[]> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `List 10 common JLPT ${level} grammar points. For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage).`,
       config: {
         responseMimeType: "application/json",
@@ -316,7 +316,7 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
 
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Generate a realistic JLPT ${level} level reading comprehension passage. 
       The topic should be related to ${selectedTopic}. It should be similar to actual exam questions in style and difficulty. 
       Provide a title, the full text in Japanese, and one multiple-choice question about the main idea (主旨) of the passage with 4 options (A, B, C, D) in Japanese, the index of the correct answer (0-3), and a brief explanation in Chinese.`,
@@ -369,7 +369,7 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
 export const analyzeSelectedText = async (text: string, context: string): Promise<AnalysisResult> => {
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `Analyze the following Japanese text selected from a reading passage. 
       Context: "${context}"
       Selected Text: "${text}"
@@ -416,7 +416,7 @@ export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> 
 
   try {
     const data = await callGeminiApi({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",

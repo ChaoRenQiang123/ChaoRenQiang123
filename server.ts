@@ -4,11 +4,11 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ... (keep existing path logic)
 
 const app = express();
 const PORT = 3000;
@@ -16,7 +16,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Initialize Gemini (Lazy initialization)
+// Initialize Gemini (Lazy initialization with Proxy support)
 let genAI: GoogleGenAI | null = null;
 
 function getGenAI() {
@@ -25,7 +25,20 @@ function getGenAI() {
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
       throw new Error("GEMINI_API_KEY is missing. Please check your .env file.");
     }
-    genAI = new GoogleGenAI(apiKey);
+
+    // 关键：配置代理
+    const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+    if (proxyUrl) {
+      console.log(`Using proxy for Gemini API: ${proxyUrl}`);
+      const agent = new HttpsProxyAgent(proxyUrl);
+      // 使用自定义 fetch 来支持代理
+      genAI = new GoogleGenAI(apiKey, {
+        // @ts-ignore - custom fetch for proxy support
+        fetchFn: (url, options) => fetch(url, { ...options, agent })
+      });
+    } else {
+      genAI = new GoogleGenAI(apiKey);
+    }
   }
   return genAI;
 }
