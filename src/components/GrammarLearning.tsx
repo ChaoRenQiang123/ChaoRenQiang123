@@ -151,7 +151,7 @@ export const GrammarLearning: React.FC = () => {
                     典型例句
                   </h3>
                   <div className="space-y-4">
-                    {selectedPoint.examples.map((ex, i) => (
+                    {selectedPoint.examples?.map((ex, i) => (
                       <div key={i} className="group p-4 bg-white rounded-2xl border border-sakura-pink/5 hover:border-sakura-pink/20 transition-all">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -177,7 +177,7 @@ export const GrammarLearning: React.FC = () => {
                     练习题
                   </h3>
                   <div className="space-y-4">
-                    {selectedPoint.practice.map((p, i) => (
+                    {selectedPoint.practice?.map((p, i) => (
                       <div key={i} className="p-6 bg-sakura-deep text-white rounded-2xl shadow-lg shadow-sakura-pink/10">
                         <div className="flex items-center gap-2 mb-3 text-sakura-pink/40">
                           <CheckCircle2 size={14} />

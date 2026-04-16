@@ -23,9 +23,10 @@ export const Translator: React.FC = () => {
 
   const renderFurigana = (text: string) => {
     // Basic parser for "漢字[かんじ]" format
-    const parts = text.split(/(\w+\[[^\]]+\])/g);
+    // Support Japanese characters in the regex
+    const parts = text.split(/([^[\]]+\[[^\]]+\])/g);
     return parts.map((part, i) => {
-      const match = part.match(/(\w+)\[([^\]]+)\]/);
+      const match = part.match(/^([^[\]]+)\[([^\]]+)\]$/);
       if (match) {
         return (
           <ruby key={i} className="mx-0.5">
