@@ -6,8 +6,9 @@ import { ReadingAnalysis } from './components/ReadingAnalysis';
 import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
-import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2 } from 'lucide-react';
+import { Flower, Book, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2, Settings2 } from 'lucide-react';
 import { preloadWithProgress, PreloadProgress } from './services/dataService';
+import { getGeminiModel, setGeminiModel, getAccessCode, setAccessCode } from './services/gemini';
 
 const TIPS = [
   "点击五十音图中的假名，可以查看单词示例并听发音哦！",
@@ -22,6 +23,10 @@ const TIPS = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(!!getAccessCode());
+  const [inputCode, setInputCode] = useState('');
+  const [authError, setAuthError] = useState(false);
+  const [geminiModel, setGeminiModelLocal] = useState(getGeminiModel());
   const [tipIndex, setTipIndex] = useState(0);
   const [progress, setProgress] = useState<PreloadProgress>({
     total: 0,
@@ -48,6 +53,61 @@ export default function App() {
 
     return () => clearInterval(tipInterval);
   }, []);
+
+  const toggleModel = () => {
+    const next = geminiModel === 'gemini-3-flash-preview' ? 'gemini-1.5-flash' : 'gemini-3-flash-preview';
+    setGeminiModel(next);
+    setGeminiModelLocal(next);
+  };
+
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputCode.trim()) {
+      setAccessCode(inputCode);
+      setIsAuthorized(true);
+    } else {
+      setAuthError(true);
+    }
+  };
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-sakura-light flex flex-col items-center justify-center p-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-sakura-pink/20 shadow-2xl shadow-sakura-pink/10 max-w-sm w-full"
+        >
+          <div className="w-16 h-16 bg-sakura-rose rounded-2xl flex items-center justify-center text-white shadow-lg mx-auto mb-6">
+            <Flower size={32} />
+          </div>
+          <h2 className="text-2xl font-serif italic text-sakura-deep mb-2">Sakura Learn</h2>
+          <p className="text-sakura-rose/60 text-sm mb-8">请输入朋友圈暗号以进入学习</p>
+          
+          <form onSubmit={handleAuth} className="space-y-4">
+            <input 
+              type="password"
+              value={inputCode}
+              onChange={(e) => {
+                setInputCode(e.target.value);
+                setAuthError(false);
+              }}
+              placeholder="输入暗号..."
+              className={`w-full px-4 py-3 rounded-xl border ${authError ? 'border-red-400 bg-red-50' : 'border-sakura-pink/20 bg-white'} focus:outline-none focus:ring-2 focus:ring-sakura-pink/30 text-center transition-all`}
+            />
+            {authError && <p className="text-red-400 text-[10px]">暗号不能为空哦</p>}
+            <button 
+              type="submit"
+              className="w-full bg-sakura-rose text-white py-3 rounded-xl font-medium shadow-lg shadow-sakura-pink/30 hover:bg-sakura-deep transition-all active:scale-95"
+            >
+              开启学习之旅
+            </button>
+          </form>
+          <p className="mt-8 text-[10px] text-sakura-rose/40 italic">提示：暗号请咨询作者本人</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -103,6 +163,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-sakura-light text-sakura-deep font-sans selection:bg-sakura-pink/30">
+      {/* Model Toggle Button */}
+      <button 
+        onClick={toggleModel}
+        title="点击切换 Gemini 模型"
+        className="fixed top-4 right-4 z-[100] flex items-center gap-2 px-3 py-1.5 bg-white/80 hover:bg-white backdrop-blur-sm rounded-full border border-sakura-pink/20 text-[10px] font-mono text-sakura-rose/60 shadow-sm transition-all active:scale-95 group"
+      >
+        <div className={`w-2 h-2 rounded-full shadow-sm animate-pulse ${geminiModel === 'gemini-3-flash-preview' ? 'bg-sakura-rose shadow-sakura-pink' : 'bg-blue-400 shadow-blue-200'}`} />
+        <span className="group-hover:text-sakura-rose transition-colors">{geminiModel === 'gemini-3-flash-preview' ? 'Gemini 3 Flash' : 'Gemini 1.5 Flash'}</span>
+        <Settings2 size={12} className="ml-1 opacity-40 group-hover:opacity-100 transition-opacity" />
+      </button>
+
       {/* Sidebar / Navigation (Desktop) */}
       <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white/80 backdrop-blur-md border-r border-sakura-pink/20 flex-col p-4 z-50">
         <div className="flex items-center gap-3 px-2 mb-12">

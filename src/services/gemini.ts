@@ -1,9 +1,41 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint, WordDetail } from "../types";
 
-// Initialize Gemini directly in the frontend
-// The API key is automatically provided by the AI Studio environment
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Model configuration
+let currentGeminiModel = localStorage.getItem('sakura_gemini_model') || 'gemini-1.5-flash';
+let accessCode = localStorage.getItem('sakura_access_code') || '';
+
+export const setGeminiModel = (model: string) => {
+  currentGeminiModel = model;
+  localStorage.setItem('sakura_gemini_model', model);
+};
+
+export const getGeminiModel = () => currentGeminiModel;
+
+export const setAccessCode = (code: string) => {
+  accessCode = code;
+  localStorage.setItem('sakura_access_code', code);
+};
+
+export const getAccessCode = () => accessCode;
+
+// Helper to call backend API
+const callGeminiAPI = async (model: string, contents: any, config?: any) => {
+  const response = await fetch("/api/gemini", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": accessCode,
+    },
+    body: JSON.stringify({ model, contents, config }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "API Request Failed");
+  }
+
+  return response.json();
+};
 
 // Helper to extract JSON from model response
 const extractJson = (text: string) => {
@@ -21,52 +53,20 @@ const extractJson = (text: string) => {
 
 export const generateWordDetail = async (word: string, reading: string, meaning: string): Promise<WordDetail | null> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
+    const data = await callGeminiAPI(currentGeminiModel, 
+      `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
       1. Identify its word type (e.g., Verb, Adjective, Noun).
       2. Provide a natural example sentence in Japanese, its reading, and Chinese translation.
       3. If it's a verb or adjective, provide common conjugations. 
          For verbs, include: て形, 否定形, 过去形, 礼貌形, 使役形, 被动形, 可能形, 假定形 (only if applicable).
          Use Chinese labels for all conjugation forms.
       Return the result in JSON format.`,
-      config: {
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            word: { type: Type.STRING },
-            reading: { type: Type.STRING },
-            meaning: { type: Type.STRING },
-            type: { type: Type.STRING, description: "Word type, e.g., '动词', 'い形容词', 'な形容词', '名词'" },
-            example: {
-              type: Type.OBJECT,
-              properties: {
-                japanese: { type: Type.STRING },
-                reading: { type: Type.STRING },
-                chinese: { type: Type.STRING },
-              },
-              required: ["japanese", "reading", "chinese"],
-            },
-            conjugations: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  form: { type: Type.STRING, description: "e.g., 'て形', '否定形', '使役形', '被动形'" },
-                  japanese: { type: Type.STRING },
-                  reading: { type: Type.STRING },
-                },
-                required: ["form", "japanese", "reading"],
-              },
-            },
-          },
-          required: ["word", "reading", "meaning", "type", "example"],
-        },
-      },
-    });
+      }
+    );
 
-    return extractJson(response.text);
+    return extractJson(data.text);
   } catch (e) {
     console.error("Failed to generate word detail", e);
     return null;
@@ -85,20 +85,19 @@ export const generateAudio = async (text: string): Promise<string | null> => {
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-tts-preview",
-      contents: [{ parts: [{ text: `Please read this Japanese text clearly: ${text}` }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
+    const data = await callGeminiAPI("gemini-3.1-flash-tts-preview", 
+      [{ parts: [{ text: `Please read this Japanese text clearly: ${text}` }] }],
+      {
+        responseModalities: ["AUDIO"],
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: { voiceName: 'Kore' },
           },
         },
-      },
-    });
+      }
+    );
 
-    const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
+    const audioData = data.audioData;
     
     if (audioData) {
       audioCache.set(text, audioData);
@@ -113,30 +112,14 @@ export const generateAudio = async (text: string): Promise<string | null> => {
 
 export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate 5 common Japanese vocabulary words for JLPT ${level} level. Provide the meaning in Chinese, and an example sentence with its reading and Chinese meaning.`,
-      config: {
+    const data = await callGeminiAPI(currentGeminiModel,
+      `Generate 5 common Japanese vocabulary words for JLPT ${level} level. Provide the meaning in Chinese, and an example sentence with its reading and Chinese meaning.`,
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              word: { type: Type.STRING },
-              reading: { type: Type.STRING },
-              meaning: { type: Type.STRING },
-              example: { type: Type.STRING },
-              exampleReading: { type: Type.STRING },
-              exampleMeaning: { type: Type.STRING },
-            },
-            required: ["word", "reading", "meaning", "example", "exampleReading", "exampleMeaning"],
-          },
-        },
-      },
-    });
+      }
+    );
 
-    return extractJson(response.text) || [];
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to generate vocabulary", e);
     return [];
@@ -145,31 +128,18 @@ export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]
 
 export const generateVocabularyList = async (level: JLPTLevel, page: number): Promise<Vocabulary[]> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate a list of 50 common Japanese vocabulary words for JLPT ${level} level. 
+    const data = await callGeminiAPI(currentGeminiModel,
+      `Generate a list of 50 common Japanese vocabulary words for JLPT ${level} level. 
       The words MUST be ordered by their frequency of appearance in the JLPT exam and daily life (most frequent words first). 
       For page ${page}, please provide the ${ (page - 1) * 50 + 1 }th to ${ page * 50 }th most frequent words for this level.
       Provide the word, its reading (hiragana), and its concise Chinese meaning. 
       Do not include example sentences. Ensure the words are appropriate for the ${level} level.`,
-      config: {
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              word: { type: Type.STRING },
-              reading: { type: Type.STRING },
-              meaning: { type: Type.STRING },
-            },
-            required: ["word", "reading", "meaning"],
-          },
-        },
-      },
-    });
+      }
+    );
 
-    return extractJson(response.text) || [];
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to generate vocabulary list", e);
     return [];
@@ -183,23 +153,11 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
     : `Translate this Japanese text to Chinese. Text: "${text}"`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            translated: { type: Type.STRING, description: isToJapanese ? "The Japanese translation" : "The Chinese translation" },
-            furigana: { type: Type.STRING, description: "The Japanese text with furigana in brackets, e.g., 漢字[かんじ]. Only provide if translating to Japanese." },
-          },
-          required: ["translated"],
-        },
-      },
+    const data = await callGeminiAPI(currentGeminiModel, prompt, {
+      responseMimeType: "application/json",
     });
 
-    return extractJson(response.text) || { translated: "" };
+    return extractJson(data.text) || { translated: "" };
   } catch (e) {
     console.error("Failed to translate", e);
     return { translated: "" };
@@ -208,23 +166,14 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
 
 export const translateWithFurigana = async (text: string): Promise<{ translated: string; furigana: string }> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`,
-      config: {
+    const data = await callGeminiAPI(currentGeminiModel, 
+      `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`,
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            translated: { type: Type.STRING, description: "The Japanese translation" },
-            furigana: { type: Type.STRING, description: "The Japanese text with furigana in brackets, e.g., 漢字[かんじ]" },
-          },
-          required: ["translated", "furigana"],
-        },
-      },
-    });
+      }
+    );
 
-    return extractJson(response.text) || { translated: "", furigana: "" };
+    return extractJson(data.text) || { translated: "", furigana: "" };
   } catch (e) {
     console.error("Failed to translate with furigana", e);
     return { translated: "", furigana: "" };
@@ -233,50 +182,14 @@ export const translateWithFurigana = async (text: string): Promise<{ translated:
 
 export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPoint[]> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `List 10 common JLPT ${level} grammar points. For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage).`,
-      config: {
+    const data = await callGeminiAPI(currentGeminiModel,
+      `List 10 common JLPT ${level} grammar points. For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage).`,
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              meaning: { type: Type.STRING },
-              usage: { type: Type.STRING },
-              examples: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    japanese: { type: Type.STRING },
-                    reading: { type: Type.STRING },
-                    chinese: { type: Type.STRING },
-                  },
-                  required: ["japanese", "reading", "chinese"],
-                },
-              },
-              practice: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    chinese: { type: Type.STRING },
-                    japanese: { type: Type.STRING },
-                  },
-                  required: ["chinese", "japanese"],
-                },
-              },
-            },
-            required: ["title", "meaning", "usage", "examples", "practice"],
-          },
-        },
-      },
-    });
+      }
+    );
 
-    const parsed = extractJson(response.text) || [];
+    const parsed = extractJson(data.text) || [];
     return parsed.map((item: any) => ({
       ...item,
       id: Math.random().toString(36).substr(2, 9),
@@ -296,39 +209,16 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
   const selectedTopic = topic || topics[Math.floor(Math.random() * topics.length)];
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate a realistic JLPT ${level} level reading comprehension passage. 
+    const data = await callGeminiAPI(currentGeminiModel,
+      `Generate a realistic JLPT ${level} level reading comprehension passage. 
       The topic should be related to ${selectedTopic}. It should be similar to actual exam questions in style and difficulty. 
       Provide a title, the full text in Japanese, and one multiple-choice question about the main idea (主旨) of the passage with 4 options (A, B, C, D) in Japanese, the index of the correct answer (0-3), and a brief explanation in Chinese.`,
-      config: {
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            content: { type: Type.STRING },
-            question: {
-              type: Type.OBJECT,
-              properties: {
-                text: { type: Type.STRING, description: "The question text in Japanese" },
-                options: { 
-                  type: Type.ARRAY, 
-                  items: { type: Type.STRING },
-                  description: "4 options in Japanese"
-                },
-                answerIndex: { type: Type.INTEGER, description: "Correct answer index (0-3)" },
-                explanation: { type: Type.STRING, description: "Explanation in Chinese" }
-              },
-              required: ["text", "options", "answerIndex", "explanation"]
-            }
-          },
-          required: ["title", "content", "question"],
-        },
-      },
-    });
+      }
+    );
 
-    const parsed = extractJson(response.text) || { title: "", content: "" };
+    const parsed = extractJson(data.text) || { title: "", content: "" };
     return {
       id: Math.random().toString(36).substr(2, 9),
       level,
@@ -349,36 +239,17 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
 
 export const analyzeSelectedText = async (text: string, context: string): Promise<AnalysisResult> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Analyze the following Japanese text selected from a reading passage. 
+    const data = await callGeminiAPI(currentGeminiModel,
+      `Analyze the following Japanese text selected from a reading passage. 
       Context: "${context}"
       Selected Text: "${text}"
       Provide a Chinese translation and explain the key grammar points involved in Chinese.`,
-      config: {
+      {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            translation: { type: Type.STRING },
-            grammarPoints: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  point: { type: Type.STRING },
-                  explanation: { type: Type.STRING },
-                },
-                required: ["point", "explanation"],
-              },
-            },
-          },
-          required: ["translation", "grammarPoints"],
-        },
-      },
-    });
+      }
+    );
 
-    return extractJson(response.text) || { translation: "", grammarPoints: [] };
+    return extractJson(data.text) || { translation: "", grammarPoints: [] };
   } catch (e) {
     console.error("Failed to analyze text", e);
     return { translation: "", grammarPoints: [] };
@@ -396,32 +267,14 @@ export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> 
     For each word, provide its reading (hiragana), meaning (Chinese), and an example sentence with its reading and meaning.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              word: { type: Type.STRING },
-              reading: { type: Type.STRING },
-              meaning: { type: Type.STRING },
-              example: { type: Type.STRING },
-              exampleReading: { type: Type.STRING },
-              exampleMeaning: { type: Type.STRING },
-            },
-            required: ["word", "reading", "meaning", "example", "exampleReading", "exampleMeaning"],
-          },
-        },
-      },
+    const data = await callGeminiAPI(currentGeminiModel, prompt, {
+      responseMimeType: "application/json",
     });
 
-    return extractJson(response.text) || [];
+    return extractJson(data.text) || [];
   } catch (e) {
     console.error("Failed to generate kana examples", e);
     return [];
   }
 };
+

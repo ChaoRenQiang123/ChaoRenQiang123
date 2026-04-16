@@ -68,87 +68,70 @@ export type PreloadProgress = {
 };
 
 export const preloadWithProgress = async (onProgress: (progress: PreloadProgress) => void) => {
-  const allTasks: { name: string; fn: () => Promise<any> }[] = [];
+  const essentialTasks: { name: string; fn: () => Promise<any> }[] = [];
+  const backgroundTasks: { name: string; fn: () => Promise<any> }[] = [];
 
-  // 1. Vocabulary (N5-N3, first 3 pages each)
-  // Prioritize N5 and N4 first pages
-  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    [1, 2, 3].forEach(page => {
-      allTasks.push({
-        name: `加载 ${level} 词汇 - 第 ${page} 页`,
-        fn: () => prefetchVocabulary(level, page)
-      });
+  // 1. Essential: Only N5 first page and basic grammar (to show something immediately)
+  essentialTasks.push({
+    name: "加载 N5 核心词汇",
+    fn: () => prefetchVocabulary('N5', 1)
+  });
+  essentialTasks.push({
+    name: "加载 N5 核心语法",
+    fn: () => prefetchGrammar('N5')
+  });
+
+  // 2. Background: Other levels and more pages
+  (['N4', 'N3'] as JLPTLevel[]).forEach(level => {
+    backgroundTasks.push({
+      name: `后台准备 ${level} 资源`,
+      fn: async () => {
+        await prefetchVocabulary(level, 1);
+        await prefetchGrammar(level);
+      }
     });
   });
 
-  // 2. Grammar (N5-N3)
+  // 3. Background: Reading passages (one for each level)
   (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    allTasks.push({
-      name: `加载 ${level} 核心语法`,
-      fn: () => prefetchGrammar(level)
-    });
-  });
-
-  // 3. Reading (N5-N3)
-  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
-    allTasks.push({
-      name: `加载 ${level} 模拟阅读`,
+    backgroundTasks.push({
+      name: `优化 ${level} 阅读体验`,
       fn: () => prefetchReading(level)
     });
   });
 
-  // 4. Kana Examples (All vowels and common consonants)
-  const commonKana = ['あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ', 'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と', 'な', 'に', 'ぬ', 'ね', 'の'];
-  commonKana.forEach(kana => {
-    allTasks.push({
-      name: `加载假名示例: ${kana}`,
-      fn: () => prefetchKanaExamples(kana)
-    });
-  });
-
-  // Split tasks into Essential (first half) and Background (second half)
-  const essentialTasks = allTasks.slice(0, Math.ceil(allTasks.length / 2));
-  const backgroundTasks = allTasks.slice(Math.ceil(allTasks.length / 2));
-
   const total = essentialTasks.length;
   let completed = 0;
 
-  // Execute essential tasks with concurrency
-  const batchSize = 3;
-  for (let i = 0; i < essentialTasks.length; i += batchSize) {
-    const batch = essentialTasks.slice(i, i + batchSize);
-    await Promise.all(batch.map(async (task) => {
-      try {
-        await task.fn();
-      } catch (e) {
-        console.error(`Preload failed for ${task.name}`, e);
-      }
-      completed++;
-      onProgress({
-        total,
-        completed,
-        percentage: Math.round((completed / total) * 100),
-        currentTask: task.name
-      });
-    }));
+  // Execute essential tasks sequentially to be safe
+  for (const task of essentialTasks) {
+    try {
+      await task.fn();
+    } catch (e) {
+      console.error(`Essential preload failed: ${task.name}`, e);
+    }
+    completed++;
+    onProgress({
+      total,
+      completed,
+      percentage: Math.round((completed / total) * 100),
+      currentTask: task.name
+    });
   }
 
-  // Start background tasks without awaiting
+  // Start background tasks with significant delays to stay under 15 RPM
   (async () => {
-    // Wait for the app to transition to main view first
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for the app to settle
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
-    for (let i = 0; i < backgroundTasks.length; i += batchSize) {
-      const batch = backgroundTasks.slice(i, i + batchSize);
-      await Promise.all(batch.map(async (task) => {
-        try {
-          await task.fn();
-        } catch (e) {
-          console.error(`Background load failed for ${task.name}`, e);
-        }
-      }));
-      // Small delay between batches to avoid network congestion
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    for (const task of backgroundTasks) {
+      try {
+        await task.fn();
+        // Wait 4 seconds between each background task to ensure we don't hit 15 RPM
+        await new Promise(resolve => setTimeout(resolve, 4000));
+      } catch (e) {
+        console.warn(`Background task skipped: ${task.name}`);
+      }
     }
   })();
 };
