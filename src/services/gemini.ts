@@ -4,6 +4,59 @@ import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint, Wo
 // Initialize Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
+// Simple cache for requests
+const geminiCache = {
+  get: (key: string) => {
+    const cached = localStorage.getItem(`gemini_cache_${key}`);
+    if (cached) {
+      try {
+        const { timestamp, data } = JSON.parse(cached);
+        // Cache for 24 hours
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+          return data;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  },
+  set: (key: string, data: any) => {
+    try {
+      localStorage.setItem(`gemini_cache_${key}`, JSON.stringify({
+        timestamp: Date.now(),
+        data
+      }));
+    } catch (e) {
+      // Clear old cache if it's full
+      if (e.name === 'QuotaExceededError') {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('gemini_cache_')) localStorage.removeItem(k);
+        });
+      }
+    }
+  }
+};
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const safeGenerateContent = async (params: any, retryCount = 0): Promise<any> => {
+  try {
+    return await ai.models.generateContent(params);
+  } catch (e: any) {
+    const message = e?.message || String(e);
+    if (message.includes("quota") || message.includes("429") || message.includes("RESOURCE_EXHAUSTED")) {
+      if (retryCount < 1) {
+        // Wait 2 seconds and retry once
+        await sleep(2000);
+        return safeGenerateContent(params, retryCount + 1);
+      }
+      throw new Error("QUOTA_EXCEEDED");
+    }
+    throw e;
+  }
+};
+
 // Model configuration
 const savedModel = localStorage.getItem('sakura_gemini_model');
 // Force gemini-2.0-flash for now as it's the most reliable across all regions
@@ -55,8 +108,12 @@ const extractJson = (text: string) => {
 };
 
 export const generateWordDetail = async (word: string, reading: string, meaning: string): Promise<WordDetail | null> => {
+  const cacheKey = `word_detail_${word}_${reading}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `Analyze the Japanese word "${word}" (reading: ${reading}, meaning: ${meaning}). 
       1. Identify its word type (e.g., Verb, Adjective, Noun).
@@ -101,8 +158,11 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
       },
     });
 
-    return extractJson(response.text);
-  } catch (e) {
+    const parsed = extractJson(response.text);
+    if (parsed) geminiCache.set(cacheKey, parsed);
+    return parsed;
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return null;
     console.error("Failed to generate word detail", e);
     return null;
   }
@@ -138,8 +198,12 @@ export const generateAudio = async (text: string): Promise<string | null> => {
 };
 
 export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]> => {
+  const cacheKey = `vocab_basic_${level}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `Generate 5 common Japanese vocabulary words for JLPT ${level} level. Provide the meaning in Chinese, and an example sentence with its reading and Chinese meaning.`,
       config: {
@@ -164,16 +228,22 @@ export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]
 
     const parsed = extractJson(response.text);
     const vocabArray = Array.isArray(parsed) ? parsed : [];
+    if (vocabArray.length > 0) geminiCache.set(cacheKey, vocabArray);
     return vocabArray;
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return [];
     console.error("Failed to generate vocabulary", e);
     return [];
   }
 };
 
 export const generateVocabularyList = async (level: JLPTLevel, page: number): Promise<Vocabulary[]> => {
+  const cacheKey = `vocab_list_${level}_${page}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `Generate a list of 50 common Japanese vocabulary words for JLPT ${level} level. 
       The words MUST be ordered by their frequency of appearance in the JLPT exam and daily life (most frequent words first). 
@@ -199,55 +269,91 @@ export const generateVocabularyList = async (level: JLPTLevel, page: number): Pr
 
     const parsed = extractJson(response.text);
     const vocabArray = Array.isArray(parsed) ? parsed : [];
+    if (vocabArray.length > 0) geminiCache.set(cacheKey, vocabArray);
     return vocabArray;
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return [];
     console.error("Failed to generate vocabulary list", e);
     return [];
   }
 };
 
 export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 'ja-zh'): Promise<{ translated: string; furigana?: string }> => {
+  const cacheKey = `translate_${direction}_${text}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   const isToJapanese = direction === 'zh-ja';
   const prompt = isToJapanese 
     ? `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`
     : `Translate this Japanese text to Chinese. Text: "${text}"`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            translated: { type: Type.STRING },
+            furigana: { type: Type.STRING, description: "Only for Japanese text, use format: 漢字[かんじ]" },
+          },
+          required: ["translated"],
+        },
       }
     });
 
-    return extractJson(response.text) || { translated: "" };
-  } catch (e) {
+    const parsed = extractJson(response.text);
+    if (parsed) geminiCache.set(cacheKey, parsed);
+    return parsed || { translated: "翻译失败" };
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return { translated: "配额已满，请稍后再试" };
     console.error("Failed to translate", e);
-    return { translated: "" };
+    return { translated: "翻译失败" };
   }
 };
 
 export const translateWithFurigana = async (text: string): Promise<{ translated: string; furigana: string }> => {
+  const cacheKey = `translate_furigana_${text}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel, 
       contents: `Translate this text to Japanese and provide the furigana (reading) for the Japanese text. Text: "${text}"`,
       config: {
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            translated: { type: Type.STRING },
+            furigana: { type: Type.STRING, description: "Use format: 漢字[かんじ]" },
+          },
+          required: ["translated", "furigana"],
+        },
       }
     });
 
-    return extractJson(response.text) || { translated: "", furigana: "" };
-  } catch (e) {
+    const parsed = extractJson(response.text);
+    if (parsed) geminiCache.set(cacheKey, parsed);
+    return parsed || { translated: "翻译失败", furigana: "" };
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return { translated: "配额已满", furigana: "" };
     console.error("Failed to translate with furigana", e);
-    return { translated: "", furigana: "" };
+    return { translated: "翻译失败", furigana: "" };
   }
 };
 
 export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPoint[]> => {
+  const cacheKey = `grammar_points_${level}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `List 10 common JLPT ${level} grammar points. For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage).`,
       config: {
@@ -292,11 +398,14 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
 
     const parsed = extractJson(response.text);
     const grammarArray = Array.isArray(parsed) ? parsed : [];
-    return grammarArray.map((item: any) => ({
+    const result = grammarArray.map((item: any) => ({
       ...item,
       id: Math.random().toString(36).substr(2, 9),
     }));
-  } catch (e) {
+    if (result.length > 0) geminiCache.set(cacheKey, result);
+    return result;
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return [];
     console.error("Failed to generate grammar points", e);
     return [];
   }
@@ -305,9 +414,12 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
 export const generateReadingPassage = async (level: JLPTLevel, topic?: string): Promise<ReadingPassage> => {
   const topics = ["culture (文化)", "daily life (生活)", "society (社会)", "education (教育)", "environment (環境)"];
   const selectedTopic = topic || topics[Math.floor(Math.random() * topics.length)];
+  const cacheKey = `reading_${level}_${selectedTopic}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `You are a JLPT exam creator. Generate a realistic JLPT ${level} level reading comprehension passage. 
       Topic: ${selectedTopic}. 
@@ -349,13 +461,24 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
     const parsed = extractJson(response.text);
     if (!parsed || !parsed.content) throw new Error("Invalid response format");
 
-    return {
+    const result = {
       id: Math.random().toString(36).substr(2, 9),
       level,
       ...parsed,
       source: `JLPT ${level} Simulation`
     };
-  } catch (e) {
+    geminiCache.set(cacheKey, result);
+    return result;
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") {
+      return {
+        id: "error-quota",
+        level,
+        title: "配额已满",
+        content: "API 配额已超出限制，请稍后再试或检查您的 Google AI Studio 计划。",
+        source: "System Quota"
+      } as ReadingPassage;
+    }
     console.error("Failed to generate reading passage", e);
     // Return a more descriptive error object that the UI can handle
     return {
@@ -369,8 +492,12 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
 };
 
 export const analyzeSelectedText = async (text: string, context: string): Promise<AnalysisResult> => {
+  const cacheKey = `analyze_${text}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `Analyze the following Japanese text selected from a reading passage. 
       Context: "${context}"
@@ -406,19 +533,28 @@ export const analyzeSelectedText = async (text: string, context: string): Promis
     });
 
     const parsed = extractJson(response.text);
-    return {
+    const result = {
       translation: parsed?.translation || "解析失败",
       grammarPoints: Array.isArray(parsed?.grammarPoints) ? parsed.grammarPoints : []
     };
-  } catch (e) {
+    if (parsed) geminiCache.set(cacheKey, result);
+    return result;
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") {
+      return { translation: "API 配额已满，请稍后再试", grammarPoints: [] };
+    }
     console.error("Failed to analyze text", e);
     return { translation: "解析失败", grammarPoints: [] };
   }
 };
 
 export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> => {
+  const cacheKey = `kana_examples_${kana}`;
+  const cached = geminiCache.get(cacheKey);
+  if (cached) return cached;
+
   try {
-    const response = await ai.models.generateContent({
+    const response = await safeGenerateContent({
       model: currentGeminiModel,
       contents: `Generate 3 common Japanese vocabulary words that MUST contain the specific character "${kana}". Provide reading, meaning, and example.`,
       config: {
@@ -443,8 +579,10 @@ export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> 
 
     const parsed = extractJson(response.text);
     const kanaArray = Array.isArray(parsed) ? parsed : [];
+    if (kanaArray.length > 0) geminiCache.set(cacheKey, kanaArray);
     return kanaArray;
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === "QUOTA_EXCEEDED") return [];
     console.error("Failed to generate kana examples", e);
     return [];
   }
