@@ -47,7 +47,6 @@ const safeGenerateContent = async (params: any, retryCount = 0): Promise<any> =>
     const message = e?.message || String(e);
     if (message.includes("quota") || message.includes("429") || message.includes("RESOURCE_EXHAUSTED")) {
       if (retryCount < 1) {
-        // Wait 2 seconds and retry once
         await sleep(2000);
         return safeGenerateContent(params, retryCount + 1);
       }
@@ -182,6 +181,7 @@ export const generateAudio = async (text: string): Promise<string | null> => {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           voiceConfig: {
+            // 'Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'
             prebuiltVoiceConfig: { voiceName: 'Kore' },
           },
         },
