@@ -2,9 +2,9 @@ export interface Vocabulary {
   word: string;
   reading: string;
   meaning: string;
-  example: string;
-  exampleReading: string;
-  exampleMeaning: string;
+  example?: string;
+  exampleReading?: string;
+  exampleMeaning?: string;
 }
 
 export interface WordDetail {
