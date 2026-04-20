@@ -43,14 +43,6 @@ const dakuonHiragana: Kana[] = [
   { char: 'ぱ', romaji: 'pa', type: 'hiragana' }, { char: 'ぴ', romaji: 'pi', type: 'hiragana' }, { char: 'ぷ', romaji: 'pu', type: 'hiragana' }, { char: 'ぺ', romaji: 'pe', type: 'hiragana' }, { char: 'ぽ', romaji: 'po', type: 'hiragana' }
 ];
 
-const dakuonKatakana: Kana[] = [
-  { char: 'ガ', romaji: 'ga', type: 'katakana' }, { char: 'ギ', romaji: 'gi', type: 'katakana' }, { char: 'グ', romaji: 'gu', type: 'katakana' }, { char: 'ゲ', romaji: 'ge', type: 'katakana' }, { char: 'ゴ', romaji: 'go', type: 'katakana' },
-  { char: 'ザ', romaji: 'za', type: 'katakana' }, { char: 'ジ', romaji: 'ji', type: 'katakana' }, { char: 'ズ', romaji: 'zu', type: 'katakana' }, { char: 'ゼ', romaji: 'ze', type: 'katakana' }, { char: 'ゾ', romaji: 'zo', type: 'katakana' },
-  { char: 'ダ', romaji: 'da', type: 'katakana' }, { char: 'ヂ', romaji: 'ji', type: 'katakana' }, { char: 'ヅ', romaji: 'zu', type: 'katakana' }, { char: 'デ', romaji: 'de', type: 'katakana' }, { char: 'ド', romaji: 'do', type: 'katakana' },
-  { char: 'バ', romaji: 'ba', type: 'katakana' }, { char: 'ビ', romaji: 'bi', type: 'katakana' }, { char: 'ブ', romaji: 'bu', type: 'katakana' }, { char: 'ベ', romaji: 'be', type: 'katakana' }, { char: 'ボ', romaji: 'bo', type: 'katakana' },
-  { char: 'パ', romaji: 'pa', type: 'katakana' }, { char: 'ピ', romaji: 'pi', type: 'katakana' }, { char: 'プ', romaji: 'pu', type: 'katakana' }, { char: 'ペ', romaji: 'pe', type: 'katakana' }, { char: 'ポ', romaji: 'po', type: 'katakana' }
-];
-
 const yoonHiragana: Kana[] = [
   { char: 'きゃ', romaji: 'kya', type: 'hiragana' }, { char: 'きゅ', romaji: 'kyu', type: 'hiragana' }, { char: 'きょ', romaji: 'kyo', type: 'hiragana' },
   { char: 'しゃ', romaji: 'sha', type: 'hiragana' }, { char: 'しゅ', romaji: 'shu', type: 'hiragana' }, { char: 'しょ', romaji: 'sho', type: 'hiragana' },
@@ -63,20 +55,6 @@ const yoonHiragana: Kana[] = [
   { char: 'じゃ', romaji: 'ja', type: 'hiragana' }, { char: 'じゅ', romaji: 'ju', type: 'hiragana' }, { char: 'じょ', romaji: 'jo', type: 'hiragana' },
   { char: 'びゃ', romaji: 'bya', type: 'hiragana' }, { char: 'びゅ', romaji: 'byu', type: 'hiragana' }, { char: 'びょ', romaji: 'byo', type: 'hiragana' },
   { char: 'ぴゃ', romaji: 'pya', type: 'hiragana' }, { char: 'ぴゅ', romaji: 'pyu', type: 'hiragana' }, { char: 'ぴょ', romaji: 'pyo', type: 'hiragana' }
-];
-
-const yoonKatakana: Kana[] = [
-  { char: 'キャ', romaji: 'kya', type: 'katakana' }, { char: 'キュ', romaji: 'kyu', type: 'katakana' }, { char: 'キョ', romaji: 'kyo', type: 'katakana' },
-  { char: 'シャ', romaji: 'sha', type: 'katakana' }, { char: 'シュ', romaji: 'shu', type: 'katakana' }, { char: 'ショ', romaji: 'sho', type: 'katakana' },
-  { char: 'チャ', romaji: 'cha', type: 'katakana' }, { char: 'チュ', romaji: 'chu', type: 'katakana' }, { char: 'チョ', romaji: 'cho', type: 'katakana' },
-  { char: 'ニャ', romaji: 'nya', type: 'katakana' }, { char: 'ニュ', romaji: 'nyu', type: 'katakana' }, { char: 'ニョ', romaji: 'nyo', type: 'katakana' },
-  { char: 'ヒャ', romaji: 'hya', type: 'katakana' }, { char: 'ヒュ', romaji: 'hyu', type: 'katakana' }, { char: 'ヒョ', romaji: 'hyo', type: 'katakana' },
-  { char: 'ミャ', romaji: 'mya', type: 'katakana' }, { char: 'ミュ', romaji: 'myu', type: 'katakana' }, { char: 'ミョ', romaji: 'myo', type: 'katakana' },
-  { char: 'リャ', romaji: 'rya', type: 'katakana' }, { char: 'リュ', romaji: 'ryu', type: 'katakana' }, { char: 'リョ', romaji: 'ryo', type: 'katakana' },
-  { char: 'ギャ', romaji: 'gya', type: 'katakana' }, { char: 'ギュ', romaji: 'gyu', type: 'katakana' }, { char: 'ギョ', romaji: 'gyo', type: 'katakana' },
-  { char: 'ジャ', romaji: 'ja', type: 'katakana' }, { char: 'ジュ', romaji: 'ju', type: 'katakana' }, { char: 'ジョ', romaji: 'jo', type: 'katakana' },
-  { char: 'ビャ', romaji: 'bya', type: 'katakana' }, { char: 'ビュ', romaji: 'byu', type: 'katakana' }, { char: 'ビョ', romaji: 'byo', type: 'katakana' },
-  { char: 'ピャ', romaji: 'pya', type: 'katakana' }, { char: 'ピュ', romaji: 'pyu', type: 'katakana' }, { char: 'ピョ', romaji: 'pyo', type: 'katakana' }
 ];
 
 const specialSounds = [
@@ -285,24 +263,9 @@ export const KanaChart: React.FC = () => {
             {specialSubTab === 'dakuon' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">平假名 浊音/半浊音</h3>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">浊音/半浊音表 (包含片假名单词示例)</h3>
                   <div className="grid grid-cols-5 gap-2">
                     {dakuonHiragana.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleKanaClick(item)}
-                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
-                      >
-                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
-                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">片假名 浊音/半浊音</h3>
-                  <div className="grid grid-cols-5 gap-2">
-                    {dakuonKatakana.map((item, index) => (
                       <div
                         key={index}
                         onClick={() => handleKanaClick(item)}
@@ -320,24 +283,9 @@ export const KanaChart: React.FC = () => {
             {specialSubTab === 'yoon' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">平假名 拗音</h3>
+                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">拗音表 (包含片假名单词示例)</h3>
                   <div className="grid grid-cols-3 gap-2">
                     {yoonHiragana.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleKanaClick(item)}
-                        className="h-12 flex flex-col items-center justify-center rounded-xl border border-sakura-pink/10 bg-white hover:border-sakura-pink/40 hover:bg-sakura-pink/5 cursor-pointer transition-all active:scale-95"
-                      >
-                        <span className="text-lg font-medium text-sakura-deep leading-none">{item.char}</span>
-                        <span className="text-[8px] uppercase tracking-wider text-sakura-rose/30 font-mono mt-0.5">{item.romaji}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-sakura-rose/60 mb-3 uppercase tracking-widest">片假名 拗音</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {yoonKatakana.map((item, index) => (
                       <div
                         key={index}
                         onClick={() => handleKanaClick(item)}

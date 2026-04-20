@@ -1,5 +1,6 @@
 import { JLPTLevel, Vocabulary, GrammarPoint, ReadingPassage } from "../types";
 import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, generateKanaExamples } from "./gemini";
+import { KANA_STATIC_DATA } from "../data/kana_static";
 
 // Track ongoing fetches to prevent redundant calls
 const ongoingFetches: Record<string, Promise<any>> = {};
@@ -7,9 +8,17 @@ const ongoingFetches: Record<string, Promise<any>> = {};
 const fetchWithCache = async <T>(
   cacheKey: string, 
   fetchFn: () => Promise<T>, 
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
+  staticData?: T
 ): Promise<T> => {
   if (!forceRefresh) {
+    // 1. Check static embedded data first
+    if (staticData) {
+      console.log(`Using static data for ${cacheKey}`);
+      return staticData;
+    }
+
+    // 2. Then check local storage cache
     const cachedData = localStorage.getItem(cacheKey);
     if (cachedData) {
       try {
@@ -57,7 +66,8 @@ export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boo
 
 export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
   const cacheKey = `kana_examples_cache_v3_${kana}`;
-  return fetchWithCache(cacheKey, () => generateKanaExamples(kana), forceRefresh);
+  const staticData = KANA_STATIC_DATA[kana];
+  return fetchWithCache(cacheKey, () => generateKanaExamples(kana), forceRefresh, staticData as any);
 };
 
 export type PreloadProgress = {

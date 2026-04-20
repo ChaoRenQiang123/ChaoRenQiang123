@@ -45,12 +45,20 @@ const safeGenerateContent = async (params: any, retryCount = 0): Promise<any> =>
     return await ai.models.generateContent(params);
   } catch (e: any) {
     const message = e?.message || String(e);
-    if (message.includes("quota") || message.includes("429") || message.includes("RESOURCE_EXHAUSTED")) {
-      if (retryCount < 1) {
-        await sleep(2000);
+    const status = e?.status || (e?.error?.status) || "";
+    const code = e?.code || (e?.error?.code) || 0;
+    
+    const isQuota = message.includes("quota") || message.includes("429") || message.includes("RESOURCE_EXHAUSTED") || code === 429 || status === "RESOURCE_EXHAUSTED";
+    const isNetworkError = message.includes("xhr error") || message.includes("Rpc failed") || message.includes("fetch") || status === "UNKNOWN" || code === 500;
+    
+    if (isQuota || isNetworkError) {
+      if (retryCount < 2) {
+        // Exponential backoff
+        await sleep(2000 * (retryCount + 1));
         return safeGenerateContent(params, retryCount + 1);
       }
-      throw new Error("QUOTA_EXCEEDED");
+      if (isQuota) throw new Error("QUOTA_EXCEEDED");
+      if (isNetworkError) throw new Error("NETWORK_ERROR");
     }
     throw e;
   }
@@ -58,8 +66,8 @@ const safeGenerateContent = async (params: any, retryCount = 0): Promise<any> =>
 
 // Model configuration
 const savedModel = localStorage.getItem('sakura_gemini_model');
-// Force gemini-2.0-flash for now as it's the most reliable across all regions
-let currentGeminiModel = 'gemini-2.0-flash';
+// Force gemini-3-flash-preview for now as it's the most reliable and recommended
+let currentGeminiModel = 'gemini-3-flash-preview';
 
 // Still keep the setter for future use, but we'll ignore the saved value for a bit to ensure stability
 export const setGeminiModel = (model: string) => {
@@ -161,7 +169,21 @@ export const generateWordDetail = async (word: string, reading: string, meaning:
     if (parsed) geminiCache.set(cacheKey, parsed);
     return parsed;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return null;
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") {
+      // Fallback: Return a basic structure even without AI
+      const fallback: WordDetail = {
+        word,
+        reading,
+        meaning,
+        type: "词汇",
+        example: {
+          japanese: "（AI 分析失败，暂无例句）",
+          reading: "",
+          chinese: "AI 分析失败，可能是由于网络连接问题导致。"
+        }
+      };
+      return fallback;
+    }
     console.error("Failed to generate word detail", e);
     return null;
   }
@@ -231,7 +253,7 @@ export const generateVocabulary = async (level: JLPTLevel): Promise<Vocabulary[]
     if (vocabArray.length > 0) geminiCache.set(cacheKey, vocabArray);
     return vocabArray;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return [];
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return [];
     console.error("Failed to generate vocabulary", e);
     return [];
   }
@@ -272,7 +294,7 @@ export const generateVocabularyList = async (level: JLPTLevel, page: number): Pr
     if (vocabArray.length > 0) geminiCache.set(cacheKey, vocabArray);
     return vocabArray;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return [];
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return [];
     console.error("Failed to generate vocabulary list", e);
     return [];
   }
@@ -309,7 +331,7 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
     if (parsed) geminiCache.set(cacheKey, parsed);
     return parsed || { translated: "翻译失败" };
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return { translated: "配额已满，请稍后再试" };
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return { translated: "服务繁忙，请稍后再试" };
     console.error("Failed to translate", e);
     return { translated: "翻译失败" };
   }
@@ -341,7 +363,7 @@ export const translateWithFurigana = async (text: string): Promise<{ translated:
     if (parsed) geminiCache.set(cacheKey, parsed);
     return parsed || { translated: "翻译失败", furigana: "" };
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return { translated: "配额已满", furigana: "" };
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return { translated: "服务暂时不可用", furigana: "" };
     console.error("Failed to translate with furigana", e);
     return { translated: "翻译失败", furigana: "" };
   }
@@ -405,7 +427,7 @@ export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPo
     if (result.length > 0) geminiCache.set(cacheKey, result);
     return result;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return [];
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return [];
     console.error("Failed to generate grammar points", e);
     return [];
   }
@@ -470,13 +492,13 @@ export const generateReadingPassage = async (level: JLPTLevel, topic?: string): 
     geminiCache.set(cacheKey, result);
     return result;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") {
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") {
       return {
         id: "error-quota",
         level,
-        title: "配额已满",
-        content: "API 配额已超出限制，请稍后再试或检查您的 Google AI Studio 计划。",
-        source: "System Quota"
+        title: "服务不可用",
+        content: e.message === "QUOTA_EXCEEDED" ? "API 配额已超出限制，请稍后再试。" : "网络连接异常，无法访问 AI 服务，请检查网络后重试。",
+        source: "System Error"
       } as ReadingPassage;
     }
     console.error("Failed to generate reading passage", e);
@@ -540,8 +562,8 @@ export const analyzeSelectedText = async (text: string, context: string): Promis
     if (parsed) geminiCache.set(cacheKey, result);
     return result;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") {
-      return { translation: "API 配额已满，请稍后再试", grammarPoints: [] };
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") {
+      return { translation: "AI 服务暂时无法访问，请稍后再试", grammarPoints: [] };
     }
     console.error("Failed to analyze text", e);
     return { translation: "解析失败", grammarPoints: [] };
@@ -582,7 +604,7 @@ export const generateKanaExamples = async (kana: string): Promise<Vocabulary[]> 
     if (kanaArray.length > 0) geminiCache.set(cacheKey, kanaArray);
     return kanaArray;
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED") return [];
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return [];
     console.error("Failed to generate kana examples", e);
     return [];
   }

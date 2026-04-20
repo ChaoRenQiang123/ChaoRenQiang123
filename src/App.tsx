@@ -60,7 +60,10 @@ export default function App() {
           <Flower size={48} className="animate-pulse" />
         </motion.div>
         
-        <h2 className="text-3xl font-serif italic text-sakura-deep mb-2">Sakura Learn</h2>
+        <div className="flex items-center gap-3 mb-2">
+          <h2 className="text-3xl font-serif italic text-sakura-deep">Sakura Learn</h2>
+          <span className="px-2 py-0.5 bg-sakura-rose/10 text-sakura-rose text-[10px] font-mono rounded-full border border-sakura-rose/20 self-end mb-1">v1.2.0</span>
+        </div>
         <p className="text-sakura-rose/60 mb-12 italic">正在为您准备学习资源...</p>
         
         <div className="w-full max-w-md bg-white/50 rounded-full h-3 border border-sakura-pink/10 overflow-hidden mb-4">
@@ -109,7 +112,10 @@ export default function App() {
           <div className="w-10 h-10 bg-sakura-rose rounded-xl flex items-center justify-center text-white shadow-lg shadow-sakura-pink/20">
             <Flower size={24} />
           </div>
-          <span className="font-serif italic text-xl font-bold tracking-tight text-sakura-deep">Sakura Learn</span>
+          <div className="flex items-baseline gap-2">
+            <span className="font-serif italic text-xl font-bold tracking-tight text-sakura-deep">Sakura Learn</span>
+            <span className="text-[9px] font-mono text-sakura-rose/40 uppercase">v1.2.0</span>
+          </div>
         </div>
 
         <div className="space-y-2 flex-1">
