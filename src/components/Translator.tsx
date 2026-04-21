@@ -22,8 +22,23 @@ export const Translator: React.FC = () => {
   };
 
   const renderFurigana = (text: string) => {
-    // Basic parser for "漢字[かんじ]" format
-    // Support Japanese characters in the regex
+    // 检测是否是 Google 翻译的回退链接 (Markdown 格式: [Text](URL))
+    const linkMatch = text.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      return (
+        <a 
+          href={linkMatch[2]} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-sakura-rose/10 text-sakura-rose font-bold rounded-xl hover:bg-sakura-rose/20 transition-all border border-sakura-rose/20 mt-2"
+        >
+          {linkMatch[1]}
+          <ArrowRightLeft size={14} />
+        </a>
+      );
+    }
+
+    // 原有的 漢字[かんじ] 解析逻辑
     const parts = text.split(/([^[\]]+\[[^\]]+\])/g);
     return parts.map((part, i) => {
       const match = part.match(/^([^[\]]+)\[([^\]]+)\]$/);

@@ -331,9 +331,39 @@ export const translateBiDirectional = async (text: string, direction: 'zh-ja' | 
     if (parsed) geminiCache.set(cacheKey, parsed);
     return parsed || { translated: "翻译失败" };
   } catch (e: any) {
-    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") return { translated: "服务繁忙，请稍后再试" };
-    console.error("Failed to translate", e);
-    return { translated: "翻译失败" };
+    // 浏览器辅助翻译回退逻辑 (Browser Translation Fallback)
+    console.warn("AI Translation failed, checking for browser translation capabilities...", e);
+    
+    // 如果浏览器支持实验性的 Translation API (Chrome 内置 AI)
+    if (typeof (window as any).translation !== 'undefined') {
+      try {
+        const canTranslate = await (window as any).translation.canTranslate({
+          sourceLanguage: direction === 'zh-ja' ? 'zh' : 'ja',
+          targetLanguage: direction === 'zh-ja' ? 'ja' : 'zh',
+        });
+
+        if (canTranslate !== 'no') {
+          const translator = await (window as any).translation.createTranslator({
+            sourceLanguage: direction === 'zh-ja' ? 'zh' : 'ja',
+            targetLanguage: direction === 'zh-ja' ? 'ja' : 'zh',
+          });
+          const translated = await translator.translate(text);
+          return { translated: `(浏览器翻译) ${translated}` };
+        }
+      } catch (browserErr) {
+        console.error("Browser translation API failed:", browserErr);
+      }
+    }
+
+    // 最后的托底方案：如果是配额问题或网络问题，提示用户使用 Google 翻译链接
+    if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") {
+      return { 
+        translated: "AI 繁忙中，点击下方链接使用网页翻译...", 
+        furigana: `[前往 Google 翻译] (https://translate.google.com/?sl=${direction.split('-')[0]}&tl=${direction.split('-')[1]}&text=${encodeURIComponent(text)})`
+      };
+    }
+    
+    return { translated: "翻译失败，请检查网络" };
   }
 };
 
