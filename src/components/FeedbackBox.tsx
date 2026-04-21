@@ -1,90 +1,249 @@
-import React, { useState } from 'react';
-import { MessageSquare, Send, User, CheckCircle2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { MessageSquare, Send, User, CheckCircle2, Star, Clock, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  orderBy, 
+  limit, 
+  onSnapshot, 
+  serverTimestamp,
+  Timestamp 
+} from 'firebase/firestore';
+import { db, handleFirestoreError } from '../lib/firebase';
+
+interface FeedbackItem {
+  id: string;
+  nickname: string;
+  content: string;
+  rating: number;
+  createdAt: Timestamp;
+}
 
 export const FeedbackBox: React.FC = () => {
   const [content, setContent] = useState('');
-  const [author, setAuthor] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [rating, setRating] = useState(5);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Subscribe to real-time feedback updates
+  useEffect(() => {
+    const q = query(
+      collection(db, 'feedbacks'),
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items: FeedbackItem[] = [];
+      snapshot.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() } as FeedbackItem);
+      });
+      setFeedbacks(items);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error listening to feedbacks:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || submitting) return;
     
-    // In the original version, this might have been a simple local state or email link
-    // For now, we'll just show a success message
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
+    setSubmitting(true);
+    try {
+      await addDoc(collection(db, 'feedbacks'), {
+        nickname: nickname.trim() || '匿名用户',
+        content: content.trim(),
+        rating,
+        createdAt: serverTimestamp()
+      });
+      
+      setSubmitted(true);
       setContent('');
-      setAuthor('');
-    }, 3000);
+      setNickname('');
+      setRating(5);
+      
+      setTimeout(() => {
+        setSubmitted(false);
+        setSubmitting(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+      handleFirestoreError(error, 'create', 'feedbacks');
+      setSubmitting(false);
+    }
+  };
+
+  const formatDate = (timestamp: Timestamp) => {
+    if (!timestamp) return '刚刚';
+    const date = timestamp.toDate();
+    return new Intl.DateTimeFormat('zh-CN', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20" id="feedback-box">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-sakura-pink/10 rounded-xl">
-          <MessageSquare size={24} className="text-sakura-rose" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-serif italic text-sakura-deep">意见反馈</h2>
-          <p className="text-sm text-sakura-rose/60">您的建议是我们进步的动力</p>
-        </div>
-      </div>
-
-      {submitted ? (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="py-12 flex flex-col items-center justify-center text-center"
-        >
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle2 size={32} />
+    <div className="max-w-4xl mx-auto space-y-8" id="feedback-box">
+      {/* Feedback Form */}
+      <div className="p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-sakura-pink/10 rounded-xl">
+            <MessageSquare size={24} className="text-sakura-rose" />
           </div>
-          <h3 className="text-xl font-serif italic text-sakura-deep mb-2">提交成功！</h3>
-          <p className="text-sakura-rose/60">感谢您的宝贵建议，我们会认真参考。</p>
-        </motion.div>
-      ) : (
-        <form onSubmit={handleSubmit} className="p-6 bg-sakura-pink/5 rounded-2xl border border-sakura-pink/10">
-          <div className="grid grid-cols-1 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-sakura-deep mb-1 ml-1">昵称 (可选)</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-sakura-rose/40" size={16} />
-                <input
-                  type="text"
-                  value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
-                  placeholder="匿名用户"
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-sakura-pink/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-sakura-rose/20 transition-all"
+          <div>
+            <h2 className="text-2xl font-serif italic text-sakura-deep">意见反馈</h2>
+            <p className="text-sm text-sakura-rose/60">留下您的建议，大家都能看到哦</p>
+          </div>
+        </div>
+
+        {submitted ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="py-12 flex flex-col items-center justify-center text-center"
+          >
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle2 size={32} />
+            </div>
+            <h3 className="text-xl font-serif italic text-sakura-deep mb-2">提交成功！</h3>
+            <p className="text-sakura-rose/60">感谢您的宝贵建议，全世界的学习者都会看到。</p>
+          </motion.div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 bg-sakura-pink/5 rounded-2xl border border-sakura-pink/10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-sakura-deep mb-1 ml-1">您的昵称</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-sakura-rose/40" size={16} />
+                    <input
+                      type="text"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      placeholder="匿名用户"
+                      maxLength={30}
+                      className="w-full pl-10 pr-4 py-2 bg-white border border-sakura-pink/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-sakura-rose/20 transition-all font-sans"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sakura-deep mb-2 ml-1">满意度评分</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setRating(s)}
+                        className="p-1 transition-transform active:scale-125"
+                      >
+                        <Star 
+                          size={24} 
+                          className={`${s <= rating ? 'fill-amber-400 text-amber-400' : 'text-stone-300'}`} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-sakura-deep mb-1 ml-1">改进建议</label>
+                <textarea
+                  required
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="有什么想对开发者说的话？"
+                  rows={4}
+                  maxLength={1000}
+                  className="w-full px-4 py-3 bg-white border border-sakura-pink/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-sakura-rose/20 transition-all resize-none h-full font-sans"
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-sakura-deep mb-1 ml-1">改进建议</label>
-              <textarea
-                required
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="请描述您希望改进的功能或发现的问题..."
-                rows={4}
-                className="w-full px-4 py-3 bg-white border border-sakura-pink/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-sakura-rose/20 transition-all resize-none"
-              />
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={!content.trim() || submitting}
+                className="flex items-center gap-2 px-8 py-3 bg-sakura-rose text-white rounded-full hover:bg-sakura-deep transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-sakura-rose/20 font-bold"
+              >
+                {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                发布意见
+              </button>
             </div>
+          </form>
+        )}
+      </div>
+
+      {/* Shared Feedback Board */}
+      <div className="p-6 bg-white/40 backdrop-blur-sm rounded-3xl border border-sakura-pink/10">
+        <h3 className="text-xl font-serif italic text-sakura-deep mb-6 flex items-center gap-2">
+          🌸 公共留言板
+          <span className="text-xs bg-sakura-rose/10 text-sakura-rose px-2 py-0.5 rounded-full not-italic font-sans">
+            实时更新
+          </span>
+        </h3>
+
+        {loading ? (
+          <div className="py-20 flex flex-col items-center justify-center text-sakura-pink/30 gap-4">
+            <Loader2 className="animate-spin" size={32} />
+            <p className="text-sm italic">正在同步云端意见...</p>
           </div>
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={!content.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-sakura-rose text-white rounded-full hover:bg-sakura-deep transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-sakura-rose/20"
-            >
-              <Send size={18} />
-              提交建议
-            </button>
+        ) : feedbacks.length === 0 ? (
+          <div className="py-20 text-center text-sakura-rose/30">
+            <p className="italic">还没有人留言，抢个沙发吧！</p>
           </div>
-        </form>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatePresence mode="popLayout">
+              {feedbacks.map((fb) => (
+                <motion.div
+                  key={fb.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-5 bg-white rounded-2xl border border-sakura-pink/5 hover:border-sakura-pink/20 transition-all shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-sakura-pink/10 rounded-full flex items-center justify-center text-sakura-rose font-bold text-xs uppercase">
+                          {(fb.nickname || '匿').charAt(0)}
+                        </div>
+                        <span className="font-bold text-sakura-deep text-sm">{fb.nickname || '匿名用户'}</span>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={10} 
+                            className={i < fb.rating ? 'fill-amber-400 text-amber-400' : 'text-stone-200'} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sakura-deep/80 text-sm leading-relaxed mb-4 whitespace-pre-wrap">
+                      {fb.content}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sakura-rose/30 text-[10px] font-mono">
+                    <Clock size={10} />
+                    {formatDate(fb.createdAt)}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

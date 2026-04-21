@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helpers
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { 
+      return request.resource.data; 
+    }
+
+    // Feedback entity validation
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['nickname', 'content', 'rating', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.nickname is string && data.nickname.size() >= 1 && data.nickname.size() <= 30 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 1000 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.createdAt == request.time;
+    }
+
+    match /feedbacks/{feedbackId} {
+      // Allow anyone to read all feedbacks (public board)
+      allow list: if true;
+      allow get: if isValidId(feedbackId);
+
+      // Allow anyone to submit feedback
+      allow create: if isValidId(feedbackId) && isValidFeedback(incoming());
+
+      // No updates or deletes allowed for data integrity
+      allow update, delete: if false;
+    }
+  }
+}
