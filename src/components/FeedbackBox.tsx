@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, User, CheckCircle2, Star, Clock, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, User, CheckCircle2, Star, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  orderBy, 
-  limit, 
-  onSnapshot, 
-  serverTimestamp,
-  Timestamp 
-} from 'firebase/firestore';
-import { db, handleFirestoreError } from '../lib/firebase';
 
 interface FeedbackItem {
   id: string;
   nickname: string;
   content: string;
   rating: number;
-  createdAt: Timestamp;
+  createdAt: { seconds: number; nanoseconds: number } | any;
 }
 
 export const FeedbackBox: React.FC = () => {
@@ -29,28 +18,31 @@ export const FeedbackBox: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Subscribe to real-time feedback updates
+  // Fetch feedbacks from our Backend Bridge (Cloud Run Bridge)
+  // This solves the Google/Firebase blocking issue in China
+  const fetchFeedbacks = async () => {
+    try {
+      const response = await fetch('/api/feedbacks');
+      if (!response.ok) throw new Error('同步失败');
+      const data = await response.json();
+      setFeedbacks(data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch feedbacks:", err);
+      setError('无法连接到留言服务器，请稍后再试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const q = query(
-      collection(db, 'feedbacks'),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items: FeedbackItem[] = [];
-      snapshot.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() } as FeedbackItem);
-      });
-      setFeedbacks(items);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error listening to feedbacks:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    fetchFeedbacks();
+    
+    // Simulating real-time with polling every 30 seconds
+    const interval = setInterval(fetchFeedbacks, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,32 +51,51 @@ export const FeedbackBox: React.FC = () => {
     
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'feedbacks'), {
-        nickname: nickname.trim() || '匿名用户',
-        content: content.trim(),
-        rating,
-        createdAt: serverTimestamp()
+      const response = await fetch('/api/feedbacks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nickname: nickname.trim() || '匿名用户',
+          content: content.trim(),
+          rating,
+        }),
       });
+
+      if (!response.ok) throw new Error('发布失败');
       
       setSubmitted(true);
       setContent('');
       setNickname('');
       setRating(5);
       
+      // Refresh list immediately after posting
+      fetchFeedbacks();
+      
       setTimeout(() => {
         setSubmitted(false);
         setSubmitting(false);
       }, 3000);
-    } catch (error) {
-      console.error("Failed to submit feedback:", error);
-      handleFirestoreError(error, 'create', 'feedbacks');
+    } catch (err) {
+      console.error("Failed to submit feedback:", err);
+      alert('留言发布失败，请检查网络连接');
       setSubmitting(false);
     }
   };
 
-  const formatDate = (timestamp: Timestamp) => {
-    if (!timestamp) return '刚刚';
-    const date = timestamp.toDate();
+  const formatDate = (createdAt: any) => {
+    if (!createdAt) return '刚刚';
+    
+    let date: Date;
+    if (createdAt.seconds) {
+      date = new Date(createdAt.seconds * 1000);
+    } else {
+      date = new Date(createdAt);
+    }
+
+    if (isNaN(date.getTime())) return '刚刚';
+
     return new Intl.DateTimeFormat('zh-CN', {
       month: 'short',
       day: 'numeric',
@@ -103,7 +114,7 @@ export const FeedbackBox: React.FC = () => {
           </div>
           <div>
             <h2 className="text-2xl font-serif italic text-sakura-deep">意见反馈</h2>
-            <p className="text-sm text-sakura-rose/60">留下您的建议，大家都能看到哦</p>
+            <p className="text-sm text-sakura-rose/60">通过云端桥接技术，国内用户可直接访问</p>
           </div>
         </div>
 
@@ -185,12 +196,27 @@ export const FeedbackBox: React.FC = () => {
 
       {/* Shared Feedback Board */}
       <div className="p-6 bg-white/40 backdrop-blur-sm rounded-3xl border border-sakura-pink/10">
-        <h3 className="text-xl font-serif italic text-sakura-deep mb-6 flex items-center gap-2">
-          🌸 公共留言板
-          <span className="text-xs bg-sakura-rose/10 text-sakura-rose px-2 py-0.5 rounded-full not-italic font-sans">
-            实时更新
-          </span>
-        </h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-serif italic text-sakura-deep flex items-center gap-2">
+            🌸 公共留言板
+            <span className="text-xs bg-sakura-rose/10 text-sakura-rose px-2 py-0.5 rounded-full not-italic font-sans">
+              节点直连
+            </span>
+          </h3>
+          <button 
+            onClick={fetchFeedbacks}
+            className="text-sakura-rose/40 hover:text-sakura-rose transition-colors"
+          >
+            <Clock size={16} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 flex items-center gap-3 text-sm">
+            <AlertCircle size={18} />
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center text-sakura-pink/30 gap-4">
