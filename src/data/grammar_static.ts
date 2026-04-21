@@ -12,7 +12,7 @@ export const GRAMMAR_STATIC_DATA: Record<JLPTLevel, Record<number, GrammarPoint[
       { id: "n5-1-7", title: "礼貌方向", meaning: "こちら/そちら/あちら/どちら", usage: "比这里、那里更礼貌的表达。", examples: [{ japanese: "どちら様ですか。", reading: "どちらさまですか。", chinese: "是哪位（贵姓）？" }], practice: [{ chinese: "那是哪家银行？", japanese: "あちらはどこの銀行（ぎんこう）ですか。" }] }
     ],
     2: [
-      { id: "n5-2-1", title: "时刻表达", meaning: "～時～分입니다", usage: "在数字后加时、分。注意4(よ)、7(しち)、9(く)时的特殊读音。", examples: [{ japanese: "今、四時半です。", reading: "いま、よじはんぷんです。", chinese: "现在是四点半。" }], practice: [{ chinese: "现在九点十分。", japanese: "今九時十分（くじじゅっぷん）です。" }] },
+      { id: "n5-2-1", title: "时刻表达", meaning: "～时～分です", usage: "在数字后加时、分。注意4(よ)、7(しち)、9(く)时的特殊读音。", examples: [{ japanese: "今、四時半です。", reading: "いま、よじはんぷんです。", chinese: "现在是四点半。" }], practice: [{ chinese: "现在九点十分。", japanese: "今九時十分（くじじゅっぷん）です。" }] },
       { id: "n5-2-2", title: "动词 ます形", meaning: "现在/将来时", usage: "表示习惯、真理或将来的动作。肯定ます，否定ません。", examples: [{ japanese: "毎日働きます。", reading: "まいにちはたらきます。", chinese: "每天工作。" }], practice: [{ chinese: "我不休息。", japanese: "休みません。" }] },
       { id: "n5-2-3", title: "时间范围", meaning: "～から～まで", usage: "从……开始，到……结束。", examples: [{ japanese: "九時から五時までです。", reading: "くじからごじまでです。", chinese: "从九点到五点。" }], practice: [{ chinese: "从几点开始？", japanese: "何時（なんじ）からですか。" }] },
       { id: "n5-2-4", title: "移动方向 へ", meaning: "去/来/回", usage: "场所+へ+行きます/来ます/帰ります。", examples: [{ japanese: "日本へ来ました。", reading: "にほんへきました。", chinese: "来日本了。" }], practice: [{ chinese: "回家。", japanese: "家（うち）へ帰ります。" }] },
