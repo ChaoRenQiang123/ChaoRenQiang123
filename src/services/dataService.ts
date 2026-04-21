@@ -3,6 +3,7 @@ import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, 
 import { KANA_STATIC_DATA } from "../data/kana_static";
 import { VOCAB_STATIC_DATA } from "../data/vocab_static";
 import { GRAMMAR_STATIC_DATA } from "../data/grammar_static";
+import { READING_STATIC_DATA } from "../data/reading_static";
 
 // Track ongoing fetches to prevent redundant calls
 const ongoingFetches: Record<string, Promise<any>> = {};
@@ -65,7 +66,9 @@ export const prefetchGrammar = async (level: JLPTLevel = 'N5', page: number = 1,
 
 export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {
   const cacheKey = `reading_passage_cache_${level}_${topic || 'random'}`;
-  return fetchWithCache(cacheKey, () => generateReadingPassage(level, topic), forceRefresh);
+  // For static reading, we pick the first one if it exists and no specific topic is requested
+  const staticData = (!topic && READING_STATIC_DATA[level]?.length > 0) ? READING_STATIC_DATA[level][0] : undefined;
+  return fetchWithCache(cacheKey, () => generateReadingPassage(level, topic), forceRefresh, staticData);
 };
 
 export const prefetchKanaExamples = async (kana: string, forceRefresh: boolean = false): Promise<Vocabulary[]> => {
@@ -107,7 +110,7 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
   });
 
   // 3. Background: Reading passages (one for each level)
-  (['N5', 'N4', 'N3'] as JLPTLevel[]).forEach(level => {
+  (['N5', 'N4', 'N3', 'N2', 'N1'] as JLPTLevel[]).forEach(level => {
     backgroundTasks.push({
       name: `优化 ${level} 阅读体验`,
       fn: () => prefetchReading(level)

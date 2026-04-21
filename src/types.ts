@@ -53,6 +53,7 @@ export interface ReadingPassage {
     answerIndex: number;
     explanation: string;
   };
+  annotations?: Record<string, AnalysisResult>;
 }
 
 export interface AnalysisResult {

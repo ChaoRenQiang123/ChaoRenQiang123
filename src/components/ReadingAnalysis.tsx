@@ -71,8 +71,30 @@ export const ReadingAnalysis: React.FC = () => {
       setAnalyzing(true);
       setShowSaved(false); // Switch to analysis view if it was showing saved items
       setSelection({ text: selectedText, result: null });
+      
       try {
-        const result = await analyzeSelectedText(selectedText, passage.content);
+        // 1. Check for offline annotations first
+        let result: AnalysisResult | null = null;
+        if (passage.annotations) {
+          // Exact match
+          if (passage.annotations[selectedText]) {
+            result = passage.annotations[selectedText];
+          } 
+          // Loose match (case-insensitive or whitespace-agnostic if needed, but here Japanese is strict)
+          else {
+            const key = Object.keys(passage.annotations).find(k => 
+              k.includes(selectedText) || selectedText.includes(k)
+            );
+            if (key && (selectedText.length > 5 || key.length > 5)) { // Prevent too short matches
+              result = passage.annotations[key];
+            }
+          }
+        }
+
+        if (!result) {
+          result = await analyzeSelectedText(selectedText, passage.content);
+        }
+        
         setSelection({ text: selectedText, result });
       } catch (error) {
         console.error("Analysis failed", error);

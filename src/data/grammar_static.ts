@@ -59,5 +59,11 @@ export const GRAMMAR_STATIC_DATA: Record<JLPTLevel, Record<number, GrammarPoint[
   },
   N3: { 1: [] },
   N2: { 1: [] },
-  N1: { 1: [] }
+  N1: { 
+    1: [],
+    2: [
+      { id: "n1-2-1", title: "～を限りに", meaning: "以……为最后 / 到……为止", usage: "表示某种状态或行为在某个时间点彻底结束。", examples: [{ japanese: "今日を限りに、タバコを辞めることにした。", reading: "きょうをかぎりに、たばこをやめることにした。", chinese: "决定从今天起戒烟。" }], practice: [{ chinese: "以这次机会为最后，我不再见他。", japanese: "今回を限りに、彼にはもう会わない。" }] },
+      { id: "n1-2-2", title: "～を皮切りに", meaning: "以……为开端", usage: "表示以某事为起点，接连发生同类事情。强调势头。", examples: [{ japanese: "東京公演を皮切りに、全国ツアーが始まる。", reading: "とうきょうこうえんをかわきりに、ぜんこくつあーがはじまる。", chinese: "以东京公演为开端，全国巡演即将开始。" }], practice: [{ chinese: "以这起事故为开端，问题接连不断。", japanese: "この事故を皮切りに、問題が次々と噴出した。" }] }
+    ]
+  }
 };
