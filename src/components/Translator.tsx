@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { translateBiDirectional } from '../services/gemini';
 import { Send, Languages, Loader2, ArrowRightLeft } from 'lucide-react';
+import { addProgressPoint } from '../services/progressService';
 
 export const Translator: React.FC = () => {
   const [input, setInput] = useState('');
@@ -11,6 +12,10 @@ export const Translator: React.FC = () => {
   const handleTranslate = async () => {
     if (!input.trim()) return;
     setLoading(true);
+    
+    // Add progress point
+    addProgressPoint('translator_use');
+
     const data = await translateBiDirectional(input, direction);
     setResult(data);
     setLoading(false);

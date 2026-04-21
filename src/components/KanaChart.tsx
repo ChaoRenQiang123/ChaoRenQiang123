@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, BookOpen, Volume2, PencilLine, Sparkles, Info } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
 import { prefetchKanaExamples } from '../services/dataService';
-import { generateAudio } from '../services/gemini';
+import { generateAudio, generateWordDetail } from '../services/gemini';
 import { playRawAudio } from '../utils/audio';
 import { WritingCanvas } from './WritingCanvas';
+import { addProgressPoint } from '../services/progressService';
 
 const hiragana: Kana[] = [
   { char: 'あ', romaji: 'a', type: 'hiragana' }, { char: 'い', romaji: 'i', type: 'hiragana' }, { char: 'う', romaji: 'u', type: 'hiragana' }, { char: 'え', romaji: 'e', type: 'hiragana' }, { char: 'お', romaji: 'o', type: 'hiragana' },
@@ -112,6 +113,9 @@ export const KanaChart: React.FC = () => {
     setLoading(true);
     setExamples([]);
     
+    // Add progress point
+    addProgressPoint(`kana_${kana.char}`);
+    
     // Fetch examples
     const examplesResult = await prefetchKanaExamples(kana.char);
     
@@ -128,6 +132,10 @@ export const KanaChart: React.FC = () => {
   const handlePlayAudio = async (text: string) => {
     if (playingAudio === text) return;
     setPlayingAudio(text);
+    
+    // Add progress (listening counts)
+    addProgressPoint(`audio_${text}`);
+
     const base64 = await generateAudio(text);
     if (base64) {
       try {

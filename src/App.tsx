@@ -8,6 +8,7 @@ import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
 import { Flower, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2 } from 'lucide-react';
 import { preloadWithProgress, PreloadProgress } from './services/dataService';
+import { getDailyProgress, getProgressPercentage, DailyProgress } from './services/progressService';
 
 const TIPS = [
   "点击五十音图中的假名，可以查看单词示例并听发音哦！",
@@ -23,6 +24,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
   const [isLoading, setIsLoading] = useState(true);
   const [tipIndex, setTipIndex] = useState(0);
+  const [dailyProgress, setDailyProgress] = useState(getDailyProgress());
   const [progress, setProgress] = useState<PreloadProgress>({
     total: 0,
     completed: 0,
@@ -31,6 +33,12 @@ export default function App() {
   });
 
   useEffect(() => {
+    // 监听进度更新
+    const handleProgressUpdate = (e: any) => {
+      setDailyProgress(e.detail);
+    };
+    window.addEventListener('sakura_progress_update', handleProgressUpdate);
+
     // Rotate tips every 3 seconds
     const tipInterval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % TIPS.length);
@@ -46,7 +54,10 @@ export default function App() {
     };
     load();
 
-    return () => clearInterval(tipInterval);
+    return () => {
+      clearInterval(tipInterval);
+      window.removeEventListener('sakura_progress_update', handleProgressUpdate);
+    };
   }, []);
 
   if (isLoading) {
@@ -165,11 +176,20 @@ export default function App() {
 
         <div className="mt-auto p-4">
           <div className="bg-white/50 rounded-2xl p-4 border border-sakura-pink/10">
-            <p className="text-xs text-sakura-rose/60 mb-1 font-medium">今日进度</p>
-            <div className="h-1.5 w-full bg-sakura-pink/20 rounded-full overflow-hidden">
-              <div className="h-full bg-sakura-rose w-1/3" />
+            <div className="flex justify-between items-center mb-1">
+              <p className="text-xs text-sakura-rose/60 font-medium">今日进度</p>
+              <span className="text-[10px] font-mono text-sakura-rose/40">{getProgressPercentage(dailyProgress.points)}%</span>
             </div>
-            <p className="text-[10px] text-sakura-rose/40 mt-2 italic">继续加油！</p>
+            <div className="h-1.5 w-full bg-sakura-pink/20 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-sakura-rose" 
+                initial={{ width: 0 }}
+                animate={{ width: `${getProgressPercentage(dailyProgress.points)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-sakura-rose/40 mt-2 italic">
+              {dailyProgress.points >= 30 ? "今日目标已达成！🌸" : "继续努力，每天进步一点点！"}
+            </p>
           </div>
         </div>
       </nav>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ReadingPassage, JLPTLevel, AnalysisResult, SavedItem } from '../types';
 import { analyzeSelectedText } from '../services/gemini';
 import { prefetchReading } from '../services/dataService';
+import { addProgressPoint } from '../services/progressService';
 import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2, Sparkles, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -72,6 +73,9 @@ export const ReadingAnalysis: React.FC = () => {
       setShowSaved(false); // Switch to analysis view if it was showing saved items
       setSelection({ text: selectedText, result: null });
       
+      // 记录进度点
+      addProgressPoint(`reading_analysis_${passage.id}_${selectedText.substring(0, 10)}`);
+
       try {
         // 1. Check for offline annotations first
         let result: AnalysisResult | null = null;
@@ -204,6 +208,9 @@ export const ReadingAnalysis: React.FC = () => {
                         onClick={() => {
                           setSelectedOption(index);
                           setShowAnswer(true);
+                          if (index === passage.question!.answerIndex) {
+                            addProgressPoint(`reading_quiz_${passage.id}`);
+                          }
                         }}
                         className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 ${
                           showAnswer 

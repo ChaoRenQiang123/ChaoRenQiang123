@@ -4,6 +4,7 @@ import { generateWordDetail } from '../services/gemini';
 import { prefetchVocabulary } from '../services/dataService';
 import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { addProgressPoint } from '../services/progressService';
 
 export const VocabularyList: React.FC = () => {
   const [level, setLevel] = useState<JLPTLevel>('N5');
@@ -48,6 +49,9 @@ export const VocabularyList: React.FC = () => {
     // 先清除之前的选择，确保状态转换平滑
     setSelectedWord(null);
     setDetailLoading(false);
+
+    // 记录进度点
+    addProgressPoint(`vocab_${word.word}`);
 
     // 如果单词已经包含本地详细信息（来自静态数据包或已缓存的结果），直接呈现
     if (word.example && word.exampleReading && word.exampleMeaning) {

@@ -5,6 +5,7 @@ import { GrammarPoint, JLPTLevel } from '../types';
 import { generateAudio } from '../services/gemini';
 import { prefetchGrammar } from '../services/dataService';
 import { playRawAudio } from '../utils/audio';
+import { addProgressPoint } from '../services/progressService';
 
 export const GrammarLearning: React.FC = () => {
   const [level, setLevel] = useState<JLPTLevel>('N5');
@@ -101,7 +102,10 @@ export const GrammarLearning: React.FC = () => {
                 {grammarPoints.map((gp) => (
                   <button
                     key={gp.id}
-                    onClick={() => setSelectedPoint(gp)}
+                    onClick={() => {
+                      setSelectedPoint(gp);
+                      addProgressPoint(`grammar_view_${gp.id}`);
+                    }}
                     className={`w-full text-left p-4 rounded-2xl transition-all border ${selectedPoint?.id === gp.id ? 'bg-sakura-rose text-white border-sakura-rose shadow-lg shadow-sakura-pink/20' : 'bg-white border-sakura-pink/5 hover:border-sakura-pink/20 text-sakura-deep'}`}
                   >
                     <div className="flex justify-between items-center">
@@ -216,7 +220,14 @@ export const GrammarLearning: React.FC = () => {
                           <span className="text-[10px] uppercase tracking-widest font-mono">Practice {i + 1}</span>
                         </div>
                         <p className="text-lg font-serif italic mb-4">“{p.chinese}”</p>
-                        <details className="group">
+                        <details 
+                          className="group"
+                          onToggle={(e) => {
+                            if ((e.target as HTMLDetailsElement).open) {
+                              addProgressPoint(`grammar_practice_${selectedPoint.id}_${i}`);
+                            }
+                          }}
+                        >
                           <summary className="text-xs text-sakura-pink/30 hover:text-white cursor-pointer transition-all list-none flex items-center gap-2">
                             <span className="w-4 h-4 rounded-full border border-current flex items-center justify-center text-[8px]">?</span>
                             点击查看参考答案
