@@ -1199,12 +1199,12 @@ export const KANA_STATIC_DATA: Record<string, Vocabulary[]> = {
   ],
   "ぞ": [
       {
-          "word": "掃除",
-          "reading": "そうじ",
-          "meaning": "打扫",
-          "example": "部屋の掃除をします。",
-          "exampleReading": "へやのそうじをします。",
-          "exampleMeaning": "打扫房间。"
+          "word": "象",
+          "reading": "ぞう",
+          "meaning": "大象",
+          "example": "動物園で象を見ました。",
+          "exampleReading": "どうぶつえんでぞうをみました。",
+          "exampleMeaning": "在动物园看了大象。"
       },
       {
           "word": "ゾーン",
@@ -1885,12 +1885,12 @@ export const KANA_STATIC_DATA: Record<string, Vocabulary[]> = {
           "exampleMeaning": "喜欢猪肉。"
       },
       {
-          "word": "プレゼント",
-          "reading": "プレゼント",
-          "meaning": "礼物",
-          "example": "母にプレゼントをあげました。",
-          "exampleReading": "ははにぷれぜんとをあげました。",
-          "exampleMeaning": "给妈妈送了礼物。"
+          "word": "新聞",
+          "reading": "しんぶん",
+          "meaning": "报纸",
+          "example": "毎朝新聞を読みます。",
+          "exampleReading": "まいあさしんぶんをよみます。",
+          "exampleMeaning": "每天早上读报纸。"
       }
   ],
   "べ": [
@@ -2499,12 +2499,12 @@ export const KANA_STATIC_DATA: Record<string, Vocabulary[]> = {
           "exampleMeaning": "今天非常热。"
       },
       {
-          "word": "キロ",
-          "reading": "キロ",
-          "meaning": "千(单位)",
-          "example": "体重が二キロ増えました。",
-          "exampleReading": "たいじゅうがにきろふえました。",
-          "exampleMeaning": "体重增加了两公斤。"
+          "word": "東京",
+          "reading": "とうきょう",
+          "meaning": "东京",
+          "example": "東京は大きな町です。",
+          "exampleReading": "とうきょうはおおきなまちです。",
+          "exampleMeaning": "东京是一个大城市。"
       }
   ],
   "しゃ": [
@@ -2535,12 +2535,12 @@ export const KANA_STATIC_DATA: Record<string, Vocabulary[]> = {
           "exampleMeaning": "晚上做了作业。"
       },
       {
-          "word": "ジュース",
-          "reading": "ジュース",
-          "meaning": "果汁",
-          "example": "オレンジジュースを飲みます。",
-          "exampleReading": "おれんじじゅーすをのみます。",
-          "exampleMeaning": "喝橙汁。"
+          "word": "趣味",
+          "reading": "しゅみ",
+          "meaning": "爱好",
+          "example": "私の趣味は料理です。",
+          "exampleReading": "わたしのしゅみはりょうりです。",
+          "exampleMeaning": "我的爱好是做菜。"
       }
   ],
   "しょ": [
@@ -2851,12 +2851,12 @@ export const KANA_STATIC_DATA: Record<string, Vocabulary[]> = {
   ],
   "ぴゃ": [
     {
-      word: "三百",
-      reading: "さんびゃく",
-      meaning: "三百",
-      example: "リンゴを三百円で買いました。",
-      exampleReading: "りんごをさんびゃくえんでかいました。",
-      exampleMeaning: "花了三百日元买了苹果。"
+      word: "六百",
+      reading: "ろっぴゃく",
+      meaning: "六百",
+      example: "六百円の切手を買いました。",
+      exampleReading: "ろっぴゃくえんのきってをかいました。",
+      exampleMeaning: "买了六百日元的邮票。"
     }
   ],
   "ぴゅ": [

@@ -28,6 +28,28 @@ export const VOCAB_STATIC_DATA: Record<JLPTLevel, Record<number, Vocabulary[]>> 
       { word: "車", reading: "くるま", meaning: "汽车" },
       { word: "電車", reading: "电车", meaning: "电车" },
       { word: "時計", reading: "とけい", meaning: "钟表" }
+    ],
+    2: [
+      { word: "部屋", reading: "へや", meaning: "房间" },
+      { word: "英語", reading: "えいご", meaning: "英语" },
+      { word: "料理", reading: "りょうり", meaning: "料理" },
+      { word: "写真", reading: "しゃしん", meaning: "照片" },
+      { word: "買い物", reading: "かいもの", meaning: "买东西" },
+      { word: "旅行", reading: "りょこう", meaning: "旅行" },
+      { word: "勉強", reading: "べんきょう", meaning: "学习" },
+      { word: "工作", reading: "しごと", meaning: "工作" },
+      { word: "休み", reading: "やすみ", meaning: "休息" },
+      { word: "天気", reading: "てんき", meaning: "天气" },
+      { word: "雨", reading: "あめ", meaning: "雨" },
+      { word: "雪", reading: "ゆき", meaning: "雪" },
+      { word: "暖かい", reading: "あたたかい", meaning: "温暖的" },
+      { word: "涼しい", reading: "すずしい", meaning: "凉快的" },
+      { word: "暑い", reading: "あつい", meaning: "热的" },
+      { word: "寒い", reading: "さむい", meaning: "冷的" },
+      { word: "楽しい", reading: "たのしい", meaning: "愉快的" },
+      { word: "面白い", reading: "おもしろい", meaning: "有趣的" },
+      { word: "忙しい", reading: "いそがしい", meaning: "忙碌的" },
+      { word: "上手", reading: "じょうず", meaning: "擅长" }
     ]
   },
   N4: {
@@ -58,6 +80,28 @@ export const VOCAB_STATIC_DATA: Record<JLPTLevel, Record<number, Vocabulary[]>> 
       { word: "目的", reading: "もくてき", meaning: "目的" },
       { word: "道具", reading: "どうぐ", meaning: "工具 / 道具" },
       { word: "試合", reading: "しあい", meaning: "比赛" }
+    ],
+    2: [
+      { word: "説明", reading: "せつめい", meaning: "说明" },
+      { word: "連絡", reading: "れんらく", meaning: "联系" },
+      { word: "決定", reading: "けってい", meaning: "决定" },
+      { word: "参加", reading: "さんか", meaning: "参加" },
+      { word: "出席", reading: "しゅっせき", meaning: "出席" },
+      { word: "欠席", reading: "けっせき", meaning: "缺席" },
+      { word: "招待", reading: "しょうたい", meaning: "招待 / 邀请" },
+      { word: "歓迎", reading: "かんげい", meaning: "欢迎" },
+      { word: "希望", reading: "きぼう", meaning: "希望" },
+      { word: "失望", reading: "しつぼう", meaning: "失望" },
+      { word: "誤解", reading: "ごかい", meaning: "误解" },
+      { word: "理解", reading: "りかい", meaning: "理解" },
+      { word: "応援", reading: "おうえん", meaning: "助威 / 支撑" },
+      { word: "整理", reading: "せいり", meaning: "整理" },
+      { word: "故障", reading: "こしょう", meaning: "故障" },
+      { word: "修理", reading: "しゅうり", meaning: "修理" },
+      { word: "返品", reading: "へんぴん", meaning: "退货" },
+      { word: "注文", reading: "ちゅうもん", meaning: "订单" },
+      { word: "予約", reading: "よやく", meaning: "预约" },
+      { word: "確認", reading: "かくにん", meaning: "确认" }
     ]
   },
   N3: {
@@ -87,6 +131,28 @@ export const VOCAB_STATIC_DATA: Record<JLPTLevel, Record<number, Vocabulary[]>> 
       { word: "機能", reading: "きのう", meaning: "功能" },
       { word: "性能", reading: "せいのう", meaning: "性能" },
       { word: "役割", reading: "やくわり", meaning: "角色 / 作用" }
+    ],
+    2: [
+      { word: "知識", reading: "ちしき", meaning: "知识" },
+      { word: "実際", reading: "じっさい", meaning: "实际" },
+      { word: "実感", reading: "じっかん", meaning: "实感" },
+      { word: "表面", reading: "ひょうめん", meaning: "表面" },
+      { word: "裏面", reading: "うらめん", meaning: "背面" },
+      { word: "状態", reading: "じょうたい", meaning: "状态" },
+      { word: "状況", reading: "じょうきょう", meaning: "状况" },
+      { word: "背景", reading: "はいけい", meaning: "背景" },
+      { word: "根本", reading: "こんぽん", meaning: "根本" },
+      { word: "基本", reading: "きほん", meaning: "基本" },
+      { word: "程度", reading: "ていど", meaning: "程度" },
+      { word: "水準", reading: "すいじゅん", meaning: "水准" },
+      { word: "段階", reading: "だんかい", meaning: "阶段" },
+      { word: "過程", reading: "かてい", meaning: "过程" },
+      { word: "結果", reading: "けっか", meaning: "结果" },
+      { word: "成果", reading: "せいか", meaning: "成果" },
+      { word: "課題", reading: "かだい", meaning: "课题" },
+      { word: "解決", reading: "かいけつ", meaning: "解决" },
+      { word: "理解", reading: "りかい", meaning: "理解" },
+      { word: "分析", reading: "ぶんせき", meaning: "分析" }
     ]
   },
   N2: {},
