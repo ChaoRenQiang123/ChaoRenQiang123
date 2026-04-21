@@ -20,6 +20,7 @@ export const ReadingAnalysis: React.FC = () => {
   const [showSaved, setShowSaved] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [refreshCount, setRefreshCount] = useState(0);
 
   const topics = [
     { value: '', label: '随机题材' },
@@ -36,23 +37,29 @@ export const ReadingAnalysis: React.FC = () => {
   ];
 
   useEffect(() => {
-    fetchPassage();
+    setRefreshCount(0);
+    fetchPassage(false, 0);
   }, [level, topic]);
 
   useEffect(() => {
     localStorage.setItem('sakura_saved_items', JSON.stringify(savedItems));
   }, [savedItems]);
 
-  const fetchPassage = async (forceRefresh = false) => {
+  const fetchPassage = async (forceRefresh = false, indexOverride?: number) => {
     setLoading(true);
     setSelection(null);
     setShowAnswer(false);
     setSelectedOption(null);
     try {
-      const data = await prefetchReading(level, forceRefresh, topic || undefined);
+      // Use override index if provided, otherwise use current refreshCount logic
+      const currentIndex = indexOverride !== undefined ? indexOverride : refreshCount;
+      
+      // index 0 -> static #1, index 1 -> static #2, index >= 2 -> AI
+      const data = await prefetchReading(level, forceRefresh, topic || undefined, currentIndex);
+      
       if (data && data.title === "内容生成失败" && !forceRefresh) {
         // If we got a cached error, try to refresh once automatically
-        const freshData = await prefetchReading(level, true, topic || undefined);
+        const freshData = await prefetchReading(level, true, topic || undefined, currentIndex);
         setPassage(freshData);
       } else {
         setPassage(data);
@@ -62,6 +69,12 @@ export const ReadingAnalysis: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleManualRefresh = () => {
+    const newCount = refreshCount + 1;
+    setRefreshCount(newCount);
+    fetchPassage(true, newCount);
   };
 
   const handleTextSelection = async () => {
@@ -164,7 +177,7 @@ export const ReadingAnalysis: React.FC = () => {
                 >
                   {topics.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
-                <button onClick={() => fetchPassage(true)} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
+                <button onClick={handleManualRefresh} className="p-2 hover:bg-sakura-pink/10 rounded-full transition-all text-sakura-rose">
                   <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                 </button>
               </div>
@@ -253,7 +266,7 @@ export const ReadingAnalysis: React.FC = () => {
               <BookOpen size={48} className="opacity-20" />
               <p className="font-serif italic">未能加载阅读材料，请尝试刷新</p>
               <button 
-                onClick={() => fetchPassage(true)}
+                onClick={handleManualRefresh}
                 className="px-6 py-2 bg-sakura-rose text-white rounded-full hover:bg-sakura-rose/90 transition-all shadow-lg shadow-sakura-pink/20"
               >
                 重新生成

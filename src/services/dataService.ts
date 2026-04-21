@@ -64,10 +64,13 @@ export const prefetchGrammar = async (level: JLPTLevel = 'N5', page: number = 1,
   return fetchWithCache(cacheKey, () => generateGrammarPoints(level, page), forceRefresh, staticData);
 };
 
-export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {
-  const cacheKey = `reading_passage_cache_${level}_${topic || 'random'}`;
-  // For static reading, we pick the first one if it exists and no specific topic is requested
-  const staticData = (!topic && READING_STATIC_DATA[level]?.length > 0) ? READING_STATIC_DATA[level][0] : undefined;
+export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false, topic?: string, staticIndex?: number): Promise<ReadingPassage | null> => {
+  const cacheKey = `reading_passage_cache_${level}_${topic || 'random'}_index_${staticIndex || 0}`;
+  // For static reading, we pick based on the provided index or default to 0
+  const staticData = (!topic && READING_STATIC_DATA[level]?.length > (staticIndex || 0)) 
+    ? READING_STATIC_DATA[level][staticIndex || 0] 
+    : undefined;
+  
   return fetchWithCache(cacheKey, () => generateReadingPassage(level, topic), forceRefresh, staticData);
 };
 
