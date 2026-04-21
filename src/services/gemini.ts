@@ -369,15 +369,15 @@ export const translateWithFurigana = async (text: string): Promise<{ translated:
   }
 };
 
-export const generateGrammarPoints = async (level: JLPTLevel): Promise<GrammarPoint[]> => {
-  const cacheKey = `grammar_points_${level}`;
+export const generateGrammarPoints = async (level: JLPTLevel, page: number = 1): Promise<GrammarPoint[]> => {
+  const cacheKey = `grammar_points_${level}_${page}`;
   const cached = geminiCache.get(cacheKey);
   if (cached) return cached;
 
   try {
     const response = await safeGenerateContent({
       model: currentGeminiModel,
-      contents: `List 10 common JLPT ${level} grammar points. For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage).`,
+      contents: `List 10 common JLPT ${level} grammar points (Page ${page}). For each point, provide its title, meaning (in Chinese), usage explanation (in Chinese), 3 example sentences (Japanese, reading, and Chinese translation), and 2 practice questions (Chinese sentence as prompt, and the correct Japanese translation/usage). Ensure these points are different from previous pages if applicable.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {

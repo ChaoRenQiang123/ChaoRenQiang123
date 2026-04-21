@@ -2,6 +2,7 @@ import { JLPTLevel, Vocabulary, GrammarPoint, ReadingPassage } from "../types";
 import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, generateKanaExamples } from "./gemini";
 import { KANA_STATIC_DATA } from "../data/kana_static";
 import { VOCAB_STATIC_DATA } from "../data/vocab_static";
+import { GRAMMAR_STATIC_DATA } from "../data/grammar_static";
 
 // Track ongoing fetches to prevent redundant calls
 const ongoingFetches: Record<string, Promise<any>> = {};
@@ -56,9 +57,10 @@ export const prefetchVocabulary = async (level: JLPTLevel = 'N5', page: number =
   return fetchWithCache(cacheKey, () => generateVocabularyList(level, page), forceRefresh, staticData);
 };
 
-export const prefetchGrammar = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false): Promise<GrammarPoint[]> => {
-  const cacheKey = `grammar_cache_${level}`;
-  return fetchWithCache(cacheKey, () => generateGrammarPoints(level), forceRefresh);
+export const prefetchGrammar = async (level: JLPTLevel = 'N5', page: number = 1, forceRefresh: boolean = false): Promise<GrammarPoint[]> => {
+  const cacheKey = `grammar_cache_v2_${level}_${page}`;
+  const staticData = GRAMMAR_STATIC_DATA[level]?.[page];
+  return fetchWithCache(cacheKey, () => generateGrammarPoints(level, page), forceRefresh, staticData);
 };
 
 export const prefetchReading = async (level: JLPTLevel = 'N5', forceRefresh: boolean = false, topic?: string): Promise<ReadingPassage | null> => {

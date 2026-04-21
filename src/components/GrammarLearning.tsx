@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Book, ChevronRight, Loader2, RefreshCw, CheckCircle2, Volume2 } from 'lucide-react';
+import { Book, ChevronLeft, ChevronRight, Loader2, RefreshCw, CheckCircle2, Volume2 } from 'lucide-react';
 import { GrammarPoint, JLPTLevel } from '../types';
 import { generateAudio } from '../services/gemini';
 import { prefetchGrammar } from '../services/dataService';
@@ -14,9 +14,11 @@ export const GrammarLearning: React.FC = () => {
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
 
+  const [page, setPage] = useState(1);
+
   useEffect(() => {
     fetchGrammar();
-  }, [level]);
+  }, [level, page]);
 
   useEffect(() => {
     if (selectedPoint && window.innerWidth < 1024) {
@@ -27,13 +29,23 @@ export const GrammarLearning: React.FC = () => {
   const fetchGrammar = async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const data = await prefetchGrammar(level, forceRefresh);
+      const data = await prefetchGrammar(level, page, forceRefresh);
       setGrammarPoints(data);
+      // 如果切换页面后当前选中的语法不在新列表中，清空选中状态
+      if (selectedPoint && !data.some(p => p.id === selectedPoint.id)) {
+        setSelectedPoint(null);
+      }
     } catch (error) {
       console.error("Failed to fetch grammar points", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLevelChange = (l: JLPTLevel) => {
+    setLevel(l);
+    setPage(1);
+    setSelectedPoint(null);
   };
 
   const handlePlayAudio = async (text: string) => {
@@ -69,7 +81,7 @@ export const GrammarLearning: React.FC = () => {
               {(['N5', 'N4', 'N3'] as JLPTLevel[]).map((l) => (
                 <button
                   key={l}
-                  onClick={() => setLevel(l)}
+                  onClick={() => handleLevelChange(l)}
                   className={`px-3 py-1 rounded-full text-xs transition-all ${level === l ? 'bg-white shadow-sm text-sakura-rose font-bold' : 'text-sakura-rose/40 hover:text-sakura-rose'}`}
                 >
                   {l}
@@ -84,30 +96,50 @@ export const GrammarLearning: React.FC = () => {
               <p className="text-sm italic">正在整理语法点...</p>
             </div>
           ) : (
-            <div className="space-y-2 overflow-y-auto max-h-[600px] pr-2 no-scrollbar">
-              {grammarPoints.map((gp) => (
-                <button
-                  key={gp.id}
-                  onClick={() => setSelectedPoint(gp)}
-                  className={`w-full text-left p-4 rounded-2xl transition-all border ${selectedPoint?.id === gp.id ? 'bg-sakura-rose text-white border-sakura-rose shadow-lg shadow-sakura-pink/20' : 'bg-white border-sakura-pink/5 hover:border-sakura-pink/20 text-sakura-deep'}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold mb-1">{gp.title}</h3>
-                      <p className={`text-xs ${selectedPoint?.id === gp.id ? 'text-white/70' : 'text-sakura-rose/60'}`}>{gp.meaning}</p>
+            <>
+              <div className="space-y-2 overflow-y-auto max-h-[600px] pr-2 no-scrollbar">
+                {grammarPoints.map((gp) => (
+                  <button
+                    key={gp.id}
+                    onClick={() => setSelectedPoint(gp)}
+                    className={`w-full text-left p-4 rounded-2xl transition-all border ${selectedPoint?.id === gp.id ? 'bg-sakura-rose text-white border-sakura-rose shadow-lg shadow-sakura-pink/20' : 'bg-white border-sakura-pink/5 hover:border-sakura-pink/20 text-sakura-deep'}`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-bold mb-1">{gp.title}</h3>
+                        <p className={`text-xs ${selectedPoint?.id === gp.id ? 'text-white/70' : 'text-sakura-rose/60'}`}>{gp.meaning}</p>
+                      </div>
+                      <ChevronRight size={18} className={selectedPoint?.id === gp.id ? 'text-white' : 'text-sakura-pink/30'} />
                     </div>
-                    <ChevronRight size={18} className={selectedPoint?.id === gp.id ? 'text-white' : 'text-sakura-pink/30'} />
-                  </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-sakura-pink/5">
+                <button
+                  onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                  disabled={page === 1 || loading}
+                  className="p-2 rounded-full border border-sakura-pink/20 text-sakura-rose disabled:opacity-20 hover:bg-sakura-pink/10 transition-all"
+                  title="上一页"
+                >
+                  <ChevronLeft size={18} />
                 </button>
-              ))}
-              <button 
-                onClick={() => fetchGrammar(true)}
-                className="w-full py-3 mt-4 border-2 border-dashed border-sakura-pink/20 rounded-2xl text-sakura-pink/40 hover:text-sakura-rose hover:border-sakura-rose/40 transition-all text-sm flex items-center justify-center gap-2"
-              >
-                <RefreshCw size={14} />
-                换一批语法
-              </button>
-            </div>
+                
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] text-sakura-rose/40 font-mono uppercase tracking-widest mb-1">Page</span>
+                  <span className="text-sm font-bold text-sakura-deep">{page}</span>
+                </div>
+
+                <button
+                  onClick={() => setPage(prev => prev + 1)}
+                  disabled={loading || grammarPoints.length < 5} // 假设每页大概 5-10 个
+                  className="p-2 rounded-full border border-sakura-pink/20 text-sakura-rose disabled:opacity-20 hover:bg-sakura-pink/10 transition-all"
+                  title="下一页"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
