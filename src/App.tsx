@@ -14,7 +14,7 @@ const TIPS = [
   "点击五十音图中的假名，可以查看单词示例并听发音哦！",
   "核心词表按使用频率排序，助您更高效地掌握常用词汇。",
   "语法讲堂提供详细的用法说明和练习题，巩固学习效果。",
-  "模拟真题阅读支持点击取词分析，深度解析复杂句子。",
+  "阅读练习支持点击取词分析，深度解析复杂句子。",
   "智能助手可以自动为日文添加振假名，辅助您阅读长难句。",
   "在核心词表中，您可以根据 JLPT 等级筛选不同难度的词汇。",
   "所有的音频示例均由 AI 实时生成，为您提供最地道的发音。"
@@ -156,7 +156,7 @@ export default function App() {
             className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'reading' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
           >
             <FileText size={20} />
-            <span className="font-medium">模拟真题阅读</span>
+            <span className="font-medium">阅读练习</span>
           </button>
           <button
             onClick={() => setActiveTab('translator')}
@@ -248,7 +248,7 @@ export default function App() {
               {activeTab === 'kana' && "基础假名"}
               {activeTab === 'vocabList' && "核心词表"}
               {activeTab === 'grammar' && "语法讲堂"}
-              {activeTab === 'reading' && "阅读解析"}
+              {activeTab === 'reading' && "阅读练习"}
               {activeTab === 'translator' && "智能助手"}
               {activeTab === 'feedback' && "意见反馈"}
             </h1>
@@ -256,7 +256,7 @@ export default function App() {
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
               {activeTab === 'vocabList' && "N5-N3 等级核心单词列表，按出现频率排序，每页 50 词"}
               {activeTab === 'grammar' && "系统学习 JLPT 各等级核心语法点"}
-              {activeTab === 'reading' && "JLPT 模拟真题阅读深度解析与语法收藏"}
+              {activeTab === 'reading' && "JLPT 阅读模拟练习与全量句式解析"}
               {activeTab === 'translator' && "翻译并自动添加振假名，辅助阅读"}
               {activeTab === 'feedback' && "留下您的宝贵意见，帮助我们做得更好"}
             </p>
