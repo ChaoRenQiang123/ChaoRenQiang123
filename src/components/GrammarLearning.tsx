@@ -67,9 +67,9 @@ export const GrammarLearning: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="grammar-learning">
-      {/* Left Column: Grammar List */}
-      <div className="lg:col-span-1 space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8" id="grammar-learning">
+      {/* Left Column: Grammar List (Wide Sidebar) */}
+      <div className="lg:col-span-2 space-y-6">
         <div className="p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-sakura-pink/20 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -149,7 +149,7 @@ export const GrammarLearning: React.FC = () => {
       </div>
 
       {/* Right Column: Grammar Detail */}
-      <div className="lg:col-span-2 space-y-6" ref={detailRef}>
+      <div className="lg:col-span-3 space-y-6" ref={detailRef}>
         <AnimatePresence mode="wait">
           {selectedPoint ? (
             <motion.div
