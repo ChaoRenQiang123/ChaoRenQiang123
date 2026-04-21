@@ -45,10 +45,34 @@ export const VocabularyList: React.FC = () => {
   };
 
   const handleWordClick = async (word: Vocabulary) => {
+    // 先清除之前的选择，确保状态转换平滑
+    setSelectedWord(null);
+    setDetailLoading(false);
+
+    // 如果单词已经包含本地详细信息（来自静态数据包或已缓存的结果），直接呈现
+    if (word.example && word.exampleReading && word.exampleMeaning) {
+      setSelectedWord({
+        word: word.word,
+        reading: word.reading,
+        meaning: word.meaning,
+        type: '核心词汇',
+        example: {
+          japanese: word.example,
+          reading: word.exampleReading,
+          chinese: word.exampleMeaning
+        },
+        conjugations: []
+      });
+      return;
+    }
+
+    // 否则，启动 AI 分析
     setDetailLoading(true);
     try {
       const detail = await generateWordDetail(word.word, word.reading, word.meaning);
-      setSelectedWord(detail);
+      if (detail) {
+        setSelectedWord(detail);
+      }
     } catch (error) {
       console.error("Failed to fetch word detail", error);
     } finally {
