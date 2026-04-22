@@ -74,7 +74,7 @@ export default function App() {
         
         <div className="flex items-center gap-3 mb-2">
           <h2 className="text-3xl font-serif italic text-sakura-deep">Sakura Learn</h2>
-          <span className="px-2 py-0.5 bg-sakura-rose/10 text-sakura-rose text-[10px] font-mono rounded-full border border-sakura-rose/20 self-end mb-1">v1.2.0</span>
+          <span className="px-2 py-0.5 bg-sakura-rose/10 text-sakura-rose text-[10px] font-mono rounded-full border border-sakura-rose/20 self-end mb-1">v1.3.0</span>
         </div>
         <p className="text-sakura-rose/60 mb-12 italic">正在为您准备学习资源...</p>
         
@@ -126,7 +126,7 @@ export default function App() {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-serif italic text-xl font-bold tracking-tight text-sakura-deep">Sakura Learn</span>
-            <span className="text-[9px] font-mono text-sakura-rose/40 uppercase">v1.2.0</span>
+            <span className="text-[9px] font-mono text-sakura-rose/40 uppercase">v1.3.0</span>
           </div>
         </div>
 
