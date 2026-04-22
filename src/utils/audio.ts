@@ -35,3 +35,37 @@ export const playRawAudio = async (base64Data: string, sampleRate: number = 2400
     throw error;
   }
 };
+
+/**
+ * Web Speech API Fallback for basic pronunciation
+ */
+export const speakWithBrowser = (text: string): Promise<void> => {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) {
+      resolve();
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    utterance.rate = 0.9;
+    
+    // Find a Japanese voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const jaVoice = voices.find(v => v.lang.startsWith('ja'));
+    if (jaVoice) {
+      utterance.voice = jaVoice;
+    }
+
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+    
+    window.speechSynthesis.speak(utterance);
+    
+    // Timeout fallback for some browsers where onend doesn't fire correctly
+    setTimeout(resolve, 2000);
+  });
+};

@@ -1,5 +1,5 @@
 import { JLPTLevel, Vocabulary, GrammarPoint, ReadingPassage } from "../types";
-import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, generateKanaExamples } from "./gemini";
+import { generateVocabularyList, generateGrammarPoints, generateReadingPassage, generateKanaExamples, isAiEnabled } from "./gemini";
 import { KANA_STATIC_DATA } from "../data/kana_static";
 import { VOCAB_STATIC_DATA } from "../data/vocab_static";
 import { GRAMMAR_STATIC_DATA } from "../data/grammar_static";
@@ -14,14 +14,13 @@ const fetchWithCache = async <T>(
   forceRefresh: boolean = false,
   staticData?: T
 ): Promise<T> => {
-  if (!forceRefresh) {
-    // 1. Check static embedded data first
-    if (staticData) {
-      console.log(`Using static data for ${cacheKey}`);
-      return staticData;
-    }
+  // 1. Priority 1: Static Offline Data (Always use if available)
+  if (staticData) {
+    return staticData;
+  }
 
-    // 2. Then check local storage cache
+  // 2. Priority 2: Local Cache (if not forcing refresh)
+  if (!forceRefresh) {
     const cachedData = localStorage.getItem(cacheKey);
     if (cachedData) {
       try {
@@ -32,7 +31,13 @@ const fetchWithCache = async <T>(
     }
   }
 
-  // If there's already an ongoing fetch for this key, return that promise
+  // 3. Priority 3: AI Generation (Only if enabled)
+  if (!isAiEnabled()) {
+    // If no static data and no AI, we can't proceed for "outside resources"
+    throw new Error("MISSING_API_KEY");
+  }
+
+  // Ensure we don't fetch the same thing twice
   if (ongoingFetches[cacheKey]) {
     return ongoingFetches[cacheKey];
   }
@@ -143,6 +148,12 @@ export const preloadWithProgress = async (onProgress: (progress: PreloadProgress
   (async () => {
     // Wait for the app to settle
     await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    // Only proceed with background tasks if AI is configured
+    if (!isAiEnabled()) {
+      console.log("Skipping background AI preloading as API key is not configured.");
+      return;
+    }
     
     for (const task of backgroundTasks) {
       try {

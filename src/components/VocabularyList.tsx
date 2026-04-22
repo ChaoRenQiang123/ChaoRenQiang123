@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Vocabulary, JLPTLevel, WordDetail } from '../types';
-import { generateWordDetail } from '../services/gemini';
+import { generateWordDetail, generateAudio } from '../services/gemini';
 import { prefetchVocabulary } from '../services/dataService';
-import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { addProgressPoint } from '../services/progressService';
+import { playRawAudio, speakWithBrowser } from '../utils/audio';
 
 export const VocabularyList: React.FC = () => {
   const [level, setLevel] = useState<JLPTLevel>('N5');
@@ -14,6 +15,7 @@ export const VocabularyList: React.FC = () => {
   const [selectedWord, setSelectedWord] = useState<WordDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
 
   const fetchWords = async (newLevel: JLPTLevel = level, newPage: number = page, forceRefresh: boolean = false) => {
     setLoading(true);
@@ -81,6 +83,28 @@ export const VocabularyList: React.FC = () => {
       console.error("Failed to fetch word detail", error);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const handlePlayAudio = async (text: string) => {
+    if (playingAudio === text) return;
+    setPlayingAudio(text);
+    
+    addProgressPoint(`audio_${text}`);
+
+    const base64 = await generateAudio(text);
+    if (base64) {
+      try {
+        await playRawAudio(base64);
+      } catch (error) {
+        console.error("Failed to play AI audio, falling back to browser TTS", error);
+        await speakWithBrowser(text);
+      } finally {
+        setPlayingAudio(null);
+      }
+    } else {
+      await speakWithBrowser(text);
+      setPlayingAudio(null);
     }
   };
 
@@ -239,7 +263,16 @@ export const VocabularyList: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-end gap-4 border-b border-sakura-pink/10 pb-6">
                   <div className="flex flex-col">
                     <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">单词</span>
-                    <span className="text-4xl font-bold text-sakura-deep">{selectedWord.word}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-4xl font-bold text-sakura-deep">{selectedWord.word}</span>
+                      <button
+                        onClick={() => handlePlayAudio(selectedWord.word)}
+                        disabled={playingAudio === selectedWord.word}
+                        className={`p-2 rounded-full transition-all ${playingAudio === selectedWord.word ? 'bg-sakura-rose text-white' : 'bg-sakura-pink/5 text-sakura-rose/40 hover:bg-sakura-pink/10 hover:text-sakura-rose'}`}
+                      >
+                        <Volume2 size={20} className={playingAudio === selectedWord.word ? 'animate-pulse' : ''} />
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs text-sakura-rose/60 font-mono uppercase tracking-widest mb-1">读音</span>
@@ -258,10 +291,21 @@ export const VocabularyList: React.FC = () => {
 
                 <div>
                   <h4 className="text-sm font-mono uppercase tracking-widest text-sakura-pink/40 mb-4">例句</h4>
-                  <div className="bg-sakura-pink/5 p-6 rounded-2xl border border-sakura-pink/10">
-                    <p className="text-xl font-serif text-sakura-deep mb-2">{selectedWord.example.japanese}</p>
-                    <p className="text-sm text-sakura-rose/60 italic mb-4">{selectedWord.example.reading}</p>
-                    <p className="text-stone-600">{selectedWord.example.chinese}</p>
+                  <div className="bg-sakura-pink/5 p-6 rounded-2xl border border-sakura-pink/10 relative group-detail">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-xl font-serif text-sakura-deep mb-2">{selectedWord.example.japanese}</p>
+                        <p className="text-sm text-sakura-rose/60 italic mb-4">{selectedWord.example.reading}</p>
+                        <p className="text-stone-600">{selectedWord.example.chinese}</p>
+                      </div>
+                      <button
+                        onClick={() => handlePlayAudio(selectedWord.example.japanese)}
+                        disabled={playingAudio === selectedWord.example.japanese}
+                        className={`p-2 rounded-full transition-all ${playingAudio === selectedWord.example.japanese ? 'bg-sakura-rose text-white' : 'bg-sakura-pink/5 text-sakura-rose/40 hover:bg-sakura-pink/10 hover:text-sakura-rose'}`}
+                      >
+                        <Volume2 size={18} className={playingAudio === selectedWord.example.japanese ? 'animate-pulse' : ''} />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

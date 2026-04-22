@@ -113,9 +113,12 @@ export const ReadingAnalysis: React.FC = () => {
         }
         
         setSelection({ text: selectedText, result });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Analysis failed", error);
-        setSelection({ text: selectedText, result: { translation: "解析失败", grammarPoints: [] } });
+        const errorMsg = error?.message === "MISSING_API_KEY" 
+          ? "请在【系统设置】中配置 API Key 以启用 AI 深度解析" 
+          : "解析失败，请检查网络";
+        setSelection({ text: selectedText, result: { translation: errorMsg, grammarPoints: [] } });
       } finally {
         setAnalyzing(false);
       }
@@ -264,12 +267,14 @@ export const ReadingAnalysis: React.FC = () => {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-sakura-pink/40 gap-4">
               <BookOpen size={48} className="opacity-20" />
-              <p className="font-serif italic">未能加载阅读材料，请尝试刷新</p>
+              <p className="font-serif italic text-center max-w-xs">
+                未能加载更多阅读材料。当前等级的离线内容已读完，请配置 AI 以生成更多。
+              </p>
               <button 
                 onClick={handleManualRefresh}
                 className="px-6 py-2 bg-sakura-rose text-white rounded-full hover:bg-sakura-rose/90 transition-all shadow-lg shadow-sakura-pink/20"
               >
-                重新生成
+                尝试重新生成
               </button>
             </div>
           )}

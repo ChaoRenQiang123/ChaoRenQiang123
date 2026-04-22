@@ -167,18 +167,18 @@ export default function App() {
             <span className="font-medium">智能翻译</span>
           </button>
           <button
-            onClick={() => setActiveTab('feedback')}
-            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'feedback' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
-          >
-            <HelpCircle size={20} />
-            <span className="font-medium">意见箱</span>
-          </button>
-          <button
             onClick={() => setActiveTab('settings')}
             className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'settings' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
           >
             <SettingsIcon size={20} />
             <span className="font-medium">系统设置</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'feedback' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
+          >
+            <HelpCircle size={20} />
+            <span className="font-medium">意见箱</span>
           </button>
         </div>
 
@@ -240,18 +240,18 @@ export default function App() {
           <span className="text-[10px] font-medium">助手</span>
         </button>
         <button
-          onClick={() => setActiveTab('feedback')}
-          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'feedback' ? 'text-sakura-rose' : 'text-stone-400'}`}
-        >
-          <HelpCircle size={20} />
-          <span className="text-[10px] font-medium">反馈</span>
-        </button>
-        <button
           onClick={() => setActiveTab('settings')}
           className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'settings' ? 'text-sakura-rose' : 'text-stone-400'}`}
         >
           <SettingsIcon size={20} />
           <span className="text-[10px] font-medium">设置</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('feedback')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'feedback' ? 'text-sakura-rose' : 'text-stone-400'}`}
+        >
+          <HelpCircle size={20} />
+          <span className="text-[10px] font-medium">反馈</span>
         </button>
       </nav>
 

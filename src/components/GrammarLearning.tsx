@@ -4,7 +4,7 @@ import { Book, ChevronLeft, ChevronRight, Loader2, RefreshCw, CheckCircle2, Volu
 import { GrammarPoint, JLPTLevel } from '../types';
 import { generateAudio } from '../services/gemini';
 import { prefetchGrammar } from '../services/dataService';
-import { playRawAudio } from '../utils/audio';
+import { playRawAudio, speakWithBrowser } from '../utils/audio';
 import { addProgressPoint } from '../services/progressService';
 
 export const GrammarLearning: React.FC = () => {
@@ -57,11 +57,14 @@ export const GrammarLearning: React.FC = () => {
       try {
         await playRawAudio(base64);
       } catch (error) {
-        console.error("Failed to play audio", error);
+        console.error("Failed to play AI audio, falling back to browser TTS", error);
+        await speakWithBrowser(text);
       } finally {
         setPlayingAudio(null);
       }
     } else {
+      // Fallback
+      await speakWithBrowser(text);
       setPlayingAudio(null);
     }
   };

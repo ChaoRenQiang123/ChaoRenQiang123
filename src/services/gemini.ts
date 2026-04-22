@@ -13,6 +13,10 @@ export const refreshGeminiClient = () => {
   ai = new GoogleGenAI({ apiKey: getApiKey() });
 };
 
+export const isAiEnabled = () => {
+  return !!getApiKey();
+};
+
 // Simple cache for requests
 const geminiCache = {
   get: (key: string) => {

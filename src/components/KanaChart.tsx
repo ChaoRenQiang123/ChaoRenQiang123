@@ -4,7 +4,7 @@ import { X, Loader2, BookOpen, Volume2, PencilLine, Sparkles, Info } from 'lucid
 import { Kana, Vocabulary } from '../types';
 import { prefetchKanaExamples } from '../services/dataService';
 import { generateAudio, generateWordDetail } from '../services/gemini';
-import { playRawAudio } from '../utils/audio';
+import { playRawAudio, speakWithBrowser } from '../utils/audio';
 import { WritingCanvas } from './WritingCanvas';
 import { addProgressPoint } from '../services/progressService';
 
@@ -115,6 +115,9 @@ export const KanaChart: React.FC = () => {
     
     // Add progress point
     addProgressPoint(`kana_${kana.char}`);
+
+    // Play sound immediately
+    handlePlayAudio(kana.char);
     
     // Fetch examples
     const examplesResult = await prefetchKanaExamples(kana.char);
@@ -141,11 +144,14 @@ export const KanaChart: React.FC = () => {
       try {
         await playRawAudio(base64);
       } catch (error) {
-        console.error("Failed to play audio", error);
+        console.error("Failed to play AI audio, falling back to browser TTS", error);
+        await speakWithBrowser(text);
       } finally {
         setPlayingAudio(null);
       }
     } else {
+      // Fallback to browser TTS if AI key is missing or failed to generate
+      await speakWithBrowser(text);
       setPlayingAudio(null);
     }
   };
