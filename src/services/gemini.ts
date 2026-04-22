@@ -1,8 +1,17 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Vocabulary, JLPTLevel, ReadingPassage, AnalysisResult, GrammarPoint, WordDetail } from "../types";
 
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Initialize Gemini with dynamic key support
+const getApiKey = () => {
+  return localStorage.getItem('sakura_custom_gemini_key') || process.env.GEMINI_API_KEY || "";
+};
+
+let ai = new GoogleGenAI({ apiKey: getApiKey() });
+
+// Function to refresh the AI client when the key changes
+export const refreshGeminiClient = () => {
+  ai = new GoogleGenAI({ apiKey: getApiKey() });
+};
 
 // Simple cache for requests
 const geminiCache = {
@@ -41,6 +50,11 @@ const geminiCache = {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const safeGenerateContent = async (params: any, retryCount = 0): Promise<any> => {
+  const currentApiKey = getApiKey();
+  if (!currentApiKey) {
+    throw new Error("MISSING_API_KEY");
+  }
+  
   try {
     return await ai.models.generateContent(params);
   } catch (e: any) {
@@ -194,6 +208,8 @@ const audioCache = new Map<string, string>();
 export const generateAudio = async (text: string): Promise<string | null> => {
   if (!text || !text.trim()) return null;
   if (audioCache.has(text)) return audioCache.get(text) || null;
+
+  if (!getApiKey()) return null;
 
   try {
     const response = await ai.models.generateContent({
@@ -592,8 +608,11 @@ export const analyzeSelectedText = async (text: string, context: string): Promis
     if (parsed) geminiCache.set(cacheKey, result);
     return result;
   } catch (e: any) {
+    if (e.message === "MISSING_API_KEY") {
+      return { translation: "请在设置中配置 Gemini API Key 以启用 AI 解析功能", grammarPoints: [] };
+    }
     if (e.message === "QUOTA_EXCEEDED" || e.message === "NETWORK_ERROR") {
-      return { translation: "AI 服务暂时无法访问，请稍后再试", grammarPoints: [] };
+      return { translation: "AI 服务暂时无法访问，请检查网络或配置", grammarPoints: [] };
     }
     console.error("Failed to analyze text", e);
     return { translation: "解析失败", grammarPoints: [] };

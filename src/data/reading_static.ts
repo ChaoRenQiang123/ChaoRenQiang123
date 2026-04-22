@@ -335,10 +335,78 @@ export const READING_STATIC_DATA: Record<JLPTLevel, ReadingPassage[]> = {
         explanation: "本文に「母は高校の先生です」と書かれています。"
       },
       annotations: {
-        "家には白い犬がいます": {
-          translation: "家里有一只白色的狗。",
+        "私の家族は四人です": {
+          translation: "我的家里有四口人。",
           grammarPoints: [
-            { point: "います", explanation: "有（用于有意志物）。" }
+            { point: "～は～です", explanation: "判断句，表示“……是……”或“……有……”。" }
+          ]
+        },
+        "父と母と姉と私です": {
+          translation: "爸爸、妈妈、姐姐和我。",
+          grammarPoints: [
+            { point: "～と～", explanation: "并列助词，表示“和”。" }
+          ]
+        },
+        "父は銀行で働いています": {
+          translation: "父亲在银行工作。",
+          grammarPoints: [
+            { point: "～で", explanation: "表示动作进行的场所。" },
+            { point: "働いています", explanation: "正在工作。动词“働く”的持续态。" }
+          ]
+        },
+        "とても厳しいですが、優しいです": {
+          translation: "虽然很严厉，但很温柔。",
+          grammarPoints: [
+            { point: "～が", explanation: "表示转折，意为“虽然……但是……”" }
+          ]
+        },
+        "母は高校の先生です": {
+          translation: "母亲是高中的老师。",
+          grammarPoints: [
+            { point: "～の", explanation: "领格助词，表示“的”。" }
+          ]
+        },
+        "料理がとても上手です": {
+          translation: "非常擅长做饭。",
+          grammarPoints: [
+            { point: "～が上手です", explanation: "表示擅长某事。" }
+          ]
+        },
+        "姉は大学生です": {
+          translation: "姐姐是大学生。",
+          grammarPoints: [
+            { point: "大学生", explanation: "だいがくせい。" }
+          ]
+        },
+        "東京の大学で勉強しています": {
+          translation: "在东京的大学学习。",
+          grammarPoints: [
+            { point: "勉強しています", explanation: "正在学习。动词“勉強する”的持续态。" }
+          ]
+        },
+        "私は毎日学校へ行きます": {
+          translation: "我每天去学校。",
+          grammarPoints: [
+            { point: "～へ", explanation: "表示移动的方向。" }
+          ]
+        },
+        "私の家には白い犬がいます": {
+          translation: "我的家里有一只白色的狗。",
+          grammarPoints: [
+            { point: "～には", explanation: "在……（场所）。" },
+            { point: "～がいます", explanation: "有（用于有意志的人或动物）。" }
+          ]
+        },
+        "名前はシロです": {
+          translation: "名字叫小白（Shiro）。",
+          grammarPoints: [
+            { point: "名前", explanation: "なまえ。" }
+          ]
+        },
+        "家族はみんな犬が大好きです": {
+          translation: "全家人都非常喜欢狗。",
+          grammarPoints: [
+            { point: "～が大好きです", explanation: "非常喜欢……。" }
           ]
         }
       },
@@ -361,16 +429,59 @@ export const READING_STATIC_DATA: Record<JLPTLevel, ReadingPassage[]> = {
         explanation: "本文に「私の趣味は音楽を聴くことです」とあります。"
       },
       annotations: {
-        "音楽を聴くことです": {
-          translation: "是听音乐。",
+        "私の趣味は音楽を聴くことです": {
+          translation: "我的爱好是听音乐。",
           grammarPoints: [
-            { point: "（动词连体形）ことです", explanation: "表示名词化（将动作变为爱好等内容）。" }
+            { point: "～は～ことです", explanation: "表示“…是做某事”。用于通过名词化动词来表达爱好或内容。" }
           ]
         },
-        "弾くことができます": {
-          translation: "能够弹奏（钢琴）。",
+        "私は日本の音楽が大好きです": {
+          translation: "我非常喜欢日本音乐。",
           grammarPoints: [
-            { point: "～ことができる", explanation: "能够……（表达能力）。" }
+            { point: "～が大好きです", explanation: "非常喜欢……。" }
+          ]
+        },
+        "毎日、家でCDを聴きます": {
+          translation: "每天在家听 CD。",
+          grammarPoints: [
+            { point: "～で", explanation: "表示动作进行的场所。" }
+          ]
+        },
+        "ピアノも少し弾くことができます": {
+          translation: "也会弹一点钢琴。",
+          grammarPoints: [
+            { point: "～ができる", explanation: "表示能够、会。" },
+            { point: "少し", explanation: "一点、稍微。" }
+          ]
+        },
+        "土曜日と日曜日は友達とテニスをします": {
+          translation: "周六和周日和朋友打网球。",
+          grammarPoints: [
+            { point: "～と", explanation: "和（某人）。" }
+          ]
+        },
+        "テニスはとても楽しいです": {
+          translation: "网球非常有趣。",
+          grammarPoints: [
+            { point: "楽しい", explanation: "开心的、有趣的。" }
+          ]
+        },
+        "スポーツも大好きです": {
+          translation: "也非常喜欢运动。",
+          grammarPoints: [
+            { point: "～も", explanation: "也。" }
+          ]
+        },
+        "来週、友達と海へ行きます": {
+          translation: "下周和朋友去海边。",
+          grammarPoints: [
+            { point: "～へ", explanation: "表示移动的方向。" }
+          ]
+        },
+        "とても楽しみです": {
+          translation: "非常期待。",
+          grammarPoints: [
+            { point: "楽しみ", explanation: "期待、乐趣。" }
           ]
         }
       },

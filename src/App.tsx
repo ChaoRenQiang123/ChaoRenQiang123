@@ -6,7 +6,8 @@ import { ReadingAnalysis } from './components/ReadingAnalysis';
 import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
-import { Flower, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2 } from 'lucide-react';
+import { Settings } from './components/Settings';
+import { Flower, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import { preloadWithProgress, PreloadProgress } from './services/dataService';
 import { getDailyProgress, getProgressPercentage, DailyProgress } from './services/progressService';
 
@@ -21,7 +22,7 @@ const TIPS = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback'>('kana');
+  const [activeTab, setActiveTab] = useState<'kana' | 'translator' | 'reading' | 'grammar' | 'vocabList' | 'feedback' | 'settings'>('kana');
   const [isLoading, setIsLoading] = useState(true);
   const [tipIndex, setTipIndex] = useState(0);
   const [dailyProgress, setDailyProgress] = useState(getDailyProgress());
@@ -172,6 +173,13 @@ export default function App() {
             <HelpCircle size={20} />
             <span className="font-medium">意见箱</span>
           </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all ${activeTab === 'settings' ? 'bg-sakura-pink/20 text-sakura-rose' : 'text-stone-400 hover:text-sakura-rose hover:bg-sakura-pink/10'}`}
+          >
+            <SettingsIcon size={20} />
+            <span className="font-medium">系统设置</span>
+          </button>
         </div>
 
         <div className="mt-auto p-4">
@@ -238,6 +246,13 @@ export default function App() {
           <HelpCircle size={20} />
           <span className="text-[10px] font-medium">反馈</span>
         </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'settings' ? 'text-sakura-rose' : 'text-stone-400'}`}
+        >
+          <SettingsIcon size={20} />
+          <span className="text-[10px] font-medium">设置</span>
+        </button>
       </nav>
 
       {/* Main Content */}
@@ -251,6 +266,7 @@ export default function App() {
               {activeTab === 'reading' && "阅读练习"}
               {activeTab === 'translator' && "智能助手"}
               {activeTab === 'feedback' && "意见反馈"}
+              {activeTab === 'settings' && "系统设置"}
             </h1>
             <p className="text-sakura-rose/60 text-[10px] md:text-base leading-relaxed">
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
@@ -259,6 +275,7 @@ export default function App() {
               {activeTab === 'reading' && "JLPT 阅读模拟练习与全量句式解析"}
               {activeTab === 'translator' && "翻译并自动添加振假名，辅助阅读"}
               {activeTab === 'feedback' && "留下您的宝贵意见，帮助我们做得更好"}
+              {activeTab === 'settings' && "配置您的 AI 服务与本地偏好"}
             </p>
           </div>
           <div className="hidden sm:block text-right">
@@ -279,6 +296,7 @@ export default function App() {
             {activeTab === 'reading' && <ReadingAnalysis />}
             {activeTab === 'translator' && <Translator />}
             {activeTab === 'feedback' && <FeedbackBox />}
+            {activeTab === 'settings' && <Settings />}
           </motion.div>
         </section>
       </main>
