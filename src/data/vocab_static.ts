@@ -8,7 +8,7 @@ export const VOCAB_STATIC_DATA: VocabularyCollection = {
       { word: "あの人", reading: "あのひと", meaning: "他、她、那个人", type: "名词", example: "あの人は誰ですか。", exampleReading: "あのひとわだれですか。", exampleMeaning: "那个人是谁？" },
       { word: "先生", reading: "せんせい", meaning: "老师", type: "名词", example: "日本語の先生は優しいです。", exampleReading: "にほんごのせんせいはやさしいです。", exampleMeaning: "日语老师很亲切。" },
       { word: "学生", reading: "がくせい", meaning: "学生", type: "名词", example: "彼は大学生です。", exampleReading: "かれはだいがくせいです。", exampleMeaning: "他是大学生。" },
-      { word: "銀行員", reading: "かいしゃいん", meaning: "银行职员", type: "名词", example: "父は会社員です。", exampleReading: "ちちはかいしゃいんです。", exampleMeaning: "父亲是公司职员。" },
+      { word: "会社員", reading: "かいしゃいん", meaning: "公司职员", type: "名词", example: "父は会社員です。", exampleReading: "ちちはかいしゃいんです。", exampleMeaning: "父亲是公司职员。" },
       { word: "銀行員", reading: "ぎんこういん", meaning: "银行职员", type: "名词", example: "姉は銀行員として働いています。", exampleReading: "あねはぎんこういんとしてはたらいています。", exampleMeaning: "姐姐作为银行职员工作。" },
       { word: "医者", reading: "いしゃ", meaning: "医生", type: "名词", example: "将来、医者になりたいです。", exampleReading: "しょうらい、いしゃになりたいです。", exampleMeaning: "将来想当医生。" },
       { word: "研究者", reading: "けんきゅうしゃ", meaning: "研究人员", type: "名词", example: "彼は大学の研究者です。", exampleReading: "かれはだいがくのけんきゅうしゃです。", exampleMeaning: "他是大学的研究人员。" },
