@@ -1,3 +1,9 @@
+export interface VocabularyCollection {
+  [level: string]: {
+    [page: number]: Vocabulary[];
+  };
+}
+
 export interface Vocabulary {
   word: string;
   reading: string;

@@ -50,8 +50,8 @@ export default function App() {
       await preloadWithProgress((p) => {
         setProgress(p);
       });
-      // Small delay to let the user see 100%
-      setTimeout(() => setIsLoading(false), 500);
+      // Delay to let the user see 100% and provide a smooth transition
+      setTimeout(() => setIsLoading(false), 1200);
     };
     load();
 
@@ -257,17 +257,26 @@ export default function App() {
 
       {/* Main Content */}
       <main className="md:pl-64 min-h-screen pb-24 md:pb-0">
-        <header className={`p-4 md:p-12 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 ${activeTab === 'kana' ? 'md:pb-6 pb-2' : ''}`}>
-          <div className="max-w-2xl">
-            <h1 className={`${activeTab === 'kana' ? 'text-xl md:text-4xl' : 'text-2xl md:text-5xl'} font-serif italic mb-1 md:mb-2 text-sakura-deep transition-all`}>
-              {activeTab === 'kana' && "基础假名"}
-              {activeTab === 'vocabList' && "核心词表"}
-              {activeTab === 'grammar' && "语法讲堂"}
-              {activeTab === 'reading' && "阅读练习"}
-              {activeTab === 'translator' && "智能助手"}
-              {activeTab === 'feedback' && "意见反馈"}
-              {activeTab === 'settings' && "系统设置"}
-            </h1>
+        <header className={`p-4 md:p-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${activeTab === 'kana' ? 'md:pb-6 pb-2' : ''}`}>
+          <div className="max-w-2xl flex-1">
+            <div className="flex items-center gap-3 mb-1 md:mb-2">
+              <h1 className={`${activeTab === 'kana' ? 'text-xl md:text-4xl' : 'text-2xl md:text-5xl'} font-serif italic text-sakura-deep transition-all`}>
+                {activeTab === 'kana' && "基础假名"}
+                {activeTab === 'vocabList' && "核心词表"}
+                {activeTab === 'grammar' && "语法讲堂"}
+                {activeTab === 'reading' && "阅读练习"}
+                {activeTab === 'translator' && "智能助手"}
+                {activeTab === 'feedback' && "意见反馈"}
+                {activeTab === 'settings' && "系统设置"}
+              </h1>
+              {/* Global Progress Pill - Visible on Mobile only */}
+              <div className="md:hidden px-3 py-1 bg-white/60 backdrop-blur-sm rounded-full border border-sakura-pink/20 flex items-center gap-2 shadow-sm">
+                <div className="w-2 h-2 rounded-full bg-sakura-rose animate-pulse" />
+                <span className="text-[10px] font-mono text-sakura-rose font-bold uppercase tracking-widest">
+                  进度 {getProgressPercentage(dailyProgress.points)}%
+                </span>
+              </div>
+            </div>
             <p className="text-sakura-rose/60 text-[10px] md:text-base leading-relaxed">
               {activeTab === 'kana' && "掌握日语的第一步：平假名与片假名"}
               {activeTab === 'vocabList' && "N5-N3 等级核心单词列表，按出现频率排序，每页 50 词"}
