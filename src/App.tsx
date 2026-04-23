@@ -7,6 +7,7 @@ import { GrammarLearning } from './components/GrammarLearning';
 import { VocabularyList } from './components/VocabularyList';
 import { FeedbackBox } from './components/FeedbackBox';
 import { Settings } from './components/Settings';
+import { StudyPet } from './components/StudyPet';
 import { Flower, Layout, MessageSquare, FileText, GraduationCap, List, HelpCircle, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import { preloadWithProgress, PreloadProgress } from './services/dataService';
 import { getDailyProgress, getProgressPercentage, DailyProgress } from './services/progressService';
@@ -309,6 +310,7 @@ export default function App() {
           </motion.div>
         </section>
       </main>
+      <StudyPet />
     </div>
   );
 }
