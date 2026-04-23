@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Vocabulary, JLPTLevel, WordDetail } from '../types';
-import { generateWordDetail, generateAudio } from '../services/gemini';
+import { generateWordDetail, generateAudio } from '../services/aiService';
 import { prefetchVocabulary } from '../services/dataService';
 import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -61,13 +61,13 @@ export const VocabularyList: React.FC = () => {
         word: word.word,
         reading: word.reading,
         meaning: word.meaning,
-        type: '核心词汇',
+        type: word.type || '核心词汇',
         example: {
           japanese: word.example,
           reading: word.exampleReading,
           chinese: word.exampleMeaning
         },
-        conjugations: []
+        conjugations: word.conjugations || []
       });
       return;
     }

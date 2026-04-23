@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { translateBiDirectional } from '../services/gemini';
+import { translateBiDirectional } from '../services/aiService';
 import { Send, Languages, Loader2, ArrowRightLeft } from 'lucide-react';
 import { addProgressPoint } from '../services/progressService';
 

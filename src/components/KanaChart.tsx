@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, BookOpen, Volume2, PencilLine, Sparkles, Info } from 'lucide-react';
 import { Kana, Vocabulary } from '../types';
 import { prefetchKanaExamples } from '../services/dataService';
-import { generateAudio, generateWordDetail } from '../services/gemini';
+import { generateAudio, generateWordDetail } from '../services/aiService';
 import { playRawAudio, speakWithBrowser } from '../utils/audio';
 import { WritingCanvas } from './WritingCanvas';
 import { addProgressPoint } from '../services/progressService';

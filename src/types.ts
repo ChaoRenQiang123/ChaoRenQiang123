@@ -1,3 +1,5 @@
+export type AIProvider = 'gemini' | 'kimi';
+
 export interface Vocabulary {
   word: string;
   reading: string;
@@ -5,6 +7,12 @@ export interface Vocabulary {
   example?: string;
   exampleReading?: string;
   exampleMeaning?: string;
+  type?: string;
+  conjugations?: {
+    form: string;
+    japanese: string;
+    reading: string;
+  }[];
 }
 
 export interface WordDetail {
