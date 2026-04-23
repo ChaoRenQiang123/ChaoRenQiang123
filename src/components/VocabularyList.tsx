@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Vocabulary, JLPTLevel, WordDetail } from '../types';
-import { generateWordDetail, generateAudio } from '../services/aiService';
+import { generateWordDetail, generateAudio } from '../services/gemini';
 import { prefetchVocabulary } from '../services/dataService';
 import { RefreshCw, ChevronLeft, ChevronRight, List, X, Info, BookOpen, Loader2, Search as SearchIcon, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';

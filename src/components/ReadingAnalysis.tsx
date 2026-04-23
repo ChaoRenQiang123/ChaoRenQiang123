@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ReadingPassage, JLPTLevel, AnalysisResult, SavedItem } from '../types';
-import { analyzeSelectedText } from '../services/aiService';
+import { analyzeSelectedText } from '../services/gemini';
 import { prefetchReading } from '../services/dataService';
 import { addProgressPoint } from '../services/progressService';
 import { BookOpen, Search, Bookmark, Loader2, RefreshCw, Trash2, CheckCircle2, Sparkles, Info } from 'lucide-react';

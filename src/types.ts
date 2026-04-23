@@ -1,5 +1,3 @@
-export type AIProvider = 'gemini' | 'kimi';
-
 export interface Vocabulary {
   word: string;
   reading: string;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Vocabulary, JLPTLevel } from '../types';
-import { generateVocabulary } from '../services/aiService';
+import { generateVocabulary } from '../services/gemini';
 import { RefreshCw, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react';
 
 export const Flashcards: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Book, ChevronLeft, ChevronRight, Loader2, RefreshCw, CheckCircle2, Volume2 } from 'lucide-react';
 import { GrammarPoint, JLPTLevel } from '../types';
-import { generateAudio } from '../services/aiService';
+import { generateAudio } from '../services/gemini';
 import { prefetchGrammar } from '../services/dataService';
 import { playRawAudio, speakWithBrowser } from '../utils/audio';
 import { addProgressPoint } from '../services/progressService';
