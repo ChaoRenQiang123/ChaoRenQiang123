@@ -21,6 +21,11 @@ export const ReadingAnalysis: React.FC = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
+  const [displayedTitle, setDisplayedTitle] = useState("");
+  const [displayedContent, setDisplayedContent] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const typingRef = useRef<{ titleTimer?: NodeJS.Timeout; contentTimer?: NodeJS.Timeout }>({});
 
   const topics = [
     { value: '', label: '随机题材' },
@@ -45,11 +50,59 @@ export const ReadingAnalysis: React.FC = () => {
     localStorage.setItem('sakura_saved_items', JSON.stringify(savedItems));
   }, [savedItems]);
 
+  useEffect(() => {
+    if (passage && !loading) {
+      const isAI = passage.source?.includes('Simulation') || passage.id.startsWith('error-');
+      
+      // Clear any existing timers
+      if (typingRef.current.titleTimer) clearInterval(typingRef.current.titleTimer);
+      if (typingRef.current.contentTimer) clearInterval(typingRef.current.contentTimer);
+      
+      if (isAI) {
+        setIsTyping(true);
+        setDisplayedTitle("");
+        setDisplayedContent("");
+        
+        let titleCharIdx = 0;
+        typingRef.current.titleTimer = setInterval(() => {
+          if (titleCharIdx <= passage.title.length) {
+            setDisplayedTitle(passage.title.substring(0, titleCharIdx));
+            titleCharIdx++;
+          } else {
+            if (typingRef.current.titleTimer) clearInterval(typingRef.current.titleTimer);
+            
+            let contentCharIdx = 0;
+            typingRef.current.contentTimer = setInterval(() => {
+              if (contentCharIdx <= passage.content.length) {
+                setDisplayedContent(passage.content.substring(0, contentCharIdx));
+                contentCharIdx++;
+              } else {
+                if (typingRef.current.contentTimer) clearInterval(typingRef.current.contentTimer);
+                setIsTyping(false);
+              }
+            }, 20); // Fast typing for content
+          }
+        }, 60); // Slower for title
+      } else {
+        setDisplayedTitle(passage.title);
+        setDisplayedContent(passage.content);
+        setIsTyping(false);
+      }
+    }
+
+    return () => {
+      if (typingRef.current.titleTimer) clearInterval(typingRef.current.titleTimer);
+      if (typingRef.current.contentTimer) clearInterval(typingRef.current.contentTimer);
+    };
+  }, [passage, loading]);
+
   const fetchPassage = async (forceRefresh = false, indexOverride?: number) => {
     setLoading(true);
     setSelection(null);
     setShowAnswer(false);
     setSelectedOption(null);
+    setDisplayedTitle("");
+    setDisplayedContent("");
     try {
       // Use override index if provided, otherwise use current refreshCount logic
       const currentIndex = indexOverride !== undefined ? indexOverride : refreshCount;
@@ -198,19 +251,23 @@ export const ReadingAnalysis: React.FC = () => {
               <Loader2 className="animate-spin w-10 h-10" />
               <p className="font-serif italic">正在加载阅读材料...</p>
             </div>
-          ) : passage && passage.content ? (
+          ) : passage && (displayedContent || displayedTitle) ? (
             <div className="flex-1">
-              <h3 className="text-xl md:text-2xl font-bold text-sakura-deep mb-6 text-center">{passage.title}</h3>
+              <h3 className="text-xl md:text-2xl font-bold text-sakura-deep mb-6 text-center">
+                {displayedTitle}
+                {isTyping && !displayedTitle.endsWith(passage.title) && <span className="inline-block w-1.5 h-5 ml-1 bg-sakura-rose/40 animate-pulse align-middle" />}
+              </h3>
               <div 
                 className="text-base md:text-lg leading-relaxed text-sakura-deep font-serif whitespace-pre-wrap selection:bg-sakura-rose selection:text-white cursor-text"
                 onMouseUp={handleTextSelection}
                 onTouchEnd={handleTextSelection}
               >
-                {passage.content}
+                {displayedContent}
+                {isTyping && displayedTitle.length >= passage.title.length && <span className="inline-block w-1.5 h-5 ml-0.5 bg-sakura-rose/40 animate-pulse align-middle" />}
               </div>
 
-              {/* MCQ Section */}
-              {passage.question && (
+              {/* MCQ Section - Only show when not typing or almost finished */}
+              {passage.question && !isTyping && (
                 <div className="mt-12 p-6 bg-sakura-light/50 rounded-2xl border border-sakura-pink/10">
                   <div className="flex items-center gap-2 mb-4 text-sakura-deep">
                     <div className="w-6 h-6 bg-sakura-rose text-white rounded-full flex items-center justify-center text-xs font-bold">Q</div>
